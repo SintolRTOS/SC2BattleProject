@@ -1,0 +1,2483 @@
+.\" Man page generated from reStructuredText.
+.
+.TH "MPI4PY" "1" "Nov 08, 2017" "3.0" "MPI for Python"
+.SH NAME
+mpi4py \- MPI for Python
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.INDENT 0.0
+.TP
+.B Author
+Lisandro Dalcin
+.TP
+.B Contact
+\fI\%dalcinl@gmail.com\fP
+.TP
+.B Web Site
+\fI\%https://bitbucket.org/mpi4py/mpi4py\fP
+.TP
+.B Date
+Nov 08, 2017
+.UNINDENT
+.SS Abstract
+.sp
+This document describes the \fIMPI for Python\fP package.  \fIMPI for
+Python\fP provides bindings of the \fIMessage Passing Interface\fP (MPI)
+standard for the Python programming language, allowing any Python
+program to exploit multiple processors.
+.sp
+This package is constructed on top of the MPI\-1/2/3 specifications
+and provides an object oriented interface which resembles the
+MPI\-2 C++ bindings. It supports point\-to\-point (sends, receives)
+and collective (broadcasts, scatters, gathers) communications of
+any \fIpicklable\fP Python object, as well as optimized communications
+of Python object exposing the single\-segment buffer interface
+(NumPy arrays, builtin bytes/string/array objects)
+.SH INTRODUCTION
+.sp
+Over the last years, high performance computing has become an
+affordable resource to many more researchers in the scientific
+community than ever before. The conjunction of quality open source
+software and commodity hardware strongly influenced the now widespread
+popularity of \fI\%Beowulf\fP class clusters and cluster of workstations.
+.sp
+Among many parallel computational models, message\-passing has proven
+to be an effective one.  This paradigm is specially suited for (but
+not limited to) distributed memory architectures and is used in
+today\(aqs most demanding scientific and engineering application related
+to modeling, simulation, design, and signal processing.  However,
+portable message\-passing parallel programming used to be a nightmare
+in the past because of the many incompatible options developers were
+faced to.  Fortunately, this situation definitely changed after the
+MPI Forum released its standard specification.
+.sp
+High performance computing is traditionally associated with software
+development using compiled languages. However, in typical applications
+programs, only a small part of the code is time\-critical enough to
+require the efficiency of compiled languages. The rest of the code is
+generally related to memory management, error handling, input/output,
+and user interaction, and those are usually the most error prone and
+time\-consuming lines of code to write and debug in the whole
+development process.  Interpreted high\-level languages can be really
+advantageous for this kind of tasks.
+.sp
+For implementing general\-purpose numerical computations, MATLAB [1]
+is the dominant interpreted programming language. In the open source
+side, Octave and Scilab are well known, freely distributed software
+packages providing compatibility with the MATLAB language. In this
+work, we present MPI for Python, a new package enabling applications
+to exploit multiple processors using standard MPI "look and feel" in
+Python scripts.
+.IP [1] 5
+MATLAB is a registered trademark of The MathWorks, Inc.
+.SS What is MPI?
+.sp
+\fI\%MPI\fP, [mpi\-using] [mpi\-ref] the \fIMessage Passing Interface\fP, is a
+standardized and portable message\-passing system designed to function
+on a wide variety of parallel computers. The standard defines the
+syntax and semantics of library routines and allows users to write
+portable programs in the main scientific programming languages
+(Fortran, C, or C++).
+.sp
+Since its release, the MPI specification [mpi\-std1] [mpi\-std2] has
+become the leading standard for message\-passing libraries for parallel
+computers.  Implementations are available from vendors of
+high\-performance computers and from well known open source projects
+like \fI\%MPICH\fP [mpi\-mpich] and \fI\%Open MPI\fP [mpi\-openmpi]\&.
+.SS What is Python?
+.sp
+\fI\%Python\fP is a modern, easy to learn, powerful programming language. It
+has efficient high\-level data structures and a simple but effective
+approach to object\-oriented programming with dynamic typing and
+dynamic binding. It supports modules and packages, which encourages
+program modularity and code reuse. Python\(aqs elegant syntax, together
+with its interpreted nature, make it an ideal language for scripting
+and rapid application development in many areas on most platforms.
+.sp
+The Python interpreter and the extensive standard library are
+available in source or binary form without charge for all major
+platforms, and can be freely distributed. It is easily extended with
+new functions and data types implemented in C or C++. Python is also
+suitable as an extension language for customizable applications.
+.sp
+Python is an ideal candidate for writing the higher\-level parts of
+large\-scale scientific applications [Hinsen97] and driving
+simulations in parallel architectures [Beazley97] like clusters of
+PC\(aqs or SMP\(aqs. Python codes are quickly developed, easily maintained,
+and can achieve a high degree of integration with other libraries
+written in compiled languages.
+.SS Related Projects
+.sp
+As this work started and evolved, some ideas were borrowed from well
+known MPI and Python related open source projects from the Internet.
+.INDENT 0.0
+.IP \(bu 2
+\fI\%OOMPI\fP
+.INDENT 2.0
+.IP \(bu 2
+It has not relation with Python, but is an excellent object
+oriented approach to MPI.
+.IP \(bu 2
+It is a C++ class library specification layered on top of the C
+bindings that encapsulates MPI into a functional class hierarchy.
+.IP \(bu 2
+It provides a flexible and intuitive interface by adding some
+abstractions, like \fIPorts\fP and \fIMessages\fP, which enrich and
+simplify the syntax.
+.UNINDENT
+.IP \(bu 2
+\fI\%Pypar\fP
+.INDENT 2.0
+.IP \(bu 2
+Its interface is rather minimal. There is no support for
+communicators or process topologies.
+.IP \(bu 2
+It does not require the Python interpreter to be modified or
+recompiled, but does not permit interactive parallel runs.
+.IP \(bu 2
+General (\fIpicklable\fP) Python objects of any type can be
+communicated. There is good support for numeric arrays,
+practically full MPI bandwidth can be achieved.
+.UNINDENT
+.IP \(bu 2
+\fI\%pyMPI\fP
+.INDENT 2.0
+.IP \(bu 2
+It rebuilds the Python interpreter providing a built\-in module
+for message passing. It does permit interactive parallel runs,
+which are useful for learning and debugging.
+.IP \(bu 2
+It provides an interface suitable for basic parallel programing.
+There is not full support for defining new communicators or process
+topologies.
+.IP \(bu 2
+General (picklable) Python objects can be messaged between
+processors. There is not support for numeric arrays.
+.UNINDENT
+.IP \(bu 2
+\fI\%Scientific Python\fP
+.INDENT 2.0
+.IP \(bu 2
+It provides a collection of Python modules that are
+useful for scientific computing.
+.IP \(bu 2
+There is an interface to MPI and BSP (\fIBulk Synchronous Parallel
+programming\fP).
+.IP \(bu 2
+The interface is simple but incomplete and does not resemble
+the MPI specification. There is support for numeric arrays.
+.UNINDENT
+.UNINDENT
+.sp
+Additionally, we would like to mention some available tools for
+scientific computing and software development with Python.
+.INDENT 0.0
+.IP \(bu 2
+\fI\%NumPy\fP is a package that provides array manipulation and
+computational capabilities similar to those found in IDL, MATLAB, or
+Octave. Using NumPy, it is possible to write many efficient
+numerical data processing applications directly in Python without
+using any C, C++ or Fortran code.
+.IP \(bu 2
+\fI\%SciPy\fP is an open source library of scientific tools for Python,
+gathering a variety of high level science and engineering modules
+together as a single package. It includes modules for graphics and
+plotting, optimization, integration, special functions, signal and
+image processing, genetic algorithms, ODE solvers, and others.
+.IP \(bu 2
+\fI\%Cython\fP is a language that makes writing C extensions for the
+Python language as easy as Python itself. The Cython language is
+very close to the Python language, but Cython additionally supports
+calling C functions and declaring C types on variables and class
+attributes. This allows the compiler to generate very efficient C
+code from Cython code. This makes Cython the ideal language for
+wrapping for external C libraries, and for fast C modules that speed
+up the execution of Python code.
+.IP \(bu 2
+\fI\%SWIG\fP is a software development tool that connects programs
+written in C and C++ with a variety of high\-level programming
+languages like Perl, Tcl/Tk, Ruby and Python. Issuing header files
+to SWIG is the simplest approach to interfacing C/C++ libraries from
+a Python module.
+.UNINDENT
+.IP [mpi-std1] 5
+MPI Forum. MPI: A Message Passing Interface Standard.
+International Journal of Supercomputer Applications, volume 8,
+number 3\-4, pages 159\-416, 1994.
+.IP [mpi-std2] 5
+MPI Forum. MPI: A Message Passing Interface Standard.
+High Performance Computing Applications, volume 12, number 1\-2,
+pages 1\-299, 1998.
+.IP [mpi-using] 5
+William Gropp, Ewing Lusk, and Anthony Skjellum.  Using
+MPI: portable parallel programming with the message\-passing
+interface.  MIT Press, 1994.
+.IP [mpi-ref] 5
+Mark Snir, Steve Otto, Steven Huss\-Lederman, David
+Walker, and Jack Dongarra.  MPI \- The Complete Reference, volume 1,
+The MPI Core.  MIT Press, 2nd. edition, 1998.
+.IP [mpi-mpich] 5
+W. Gropp, E. Lusk, N. Doss, and A. Skjellum.  A
+high\-performance, portable implementation of the MPI message
+passing interface standard.  Parallel Computing, 22(6):789\-828,
+September 1996.
+.IP [mpi-openmpi] 5
+Edgar Gabriel, Graham E. Fagg, George Bosilca, Thara
+Angskun, Jack J. Dongarra, Jeffrey M. Squyres, Vishal Sahay,
+Prabhanjan Kambadur, Brian Barrett, Andrew Lumsdaine, Ralph
+H. Castain, David J. Daniel, Richard L. Graham, and Timothy
+S. Woodall. Open MPI: Goals, Concept, and Design of a Next
+Generation MPI Implementation. In Proceedings, 11th European
+PVM/MPI Users\(aq Group Meeting, Budapest, Hungary, September 2004.
+.IP [Hinsen97] 5
+Konrad Hinsen.  The Molecular Modelling Toolkit: a case
+study of a large scientific application in Python.  In Proceedings
+of the 6th International Python Conference, pages 29\-35, San Jose,
+Ca., October 1997.
+.IP [Beazley97] 5
+David M. Beazley and Peter S. Lomdahl.  Feeding a
+large\-scale physics application to Python.  In Proceedings of the
+6th International Python Conference, pages 21\-29, San Jose, Ca.,
+October 1997.
+.SH OVERVIEW
+.sp
+MPI for Python provides an object oriented approach to message passing
+which grounds on the standard MPI\-2 C++ bindings. The interface was
+designed with focus in translating MPI syntax and semantics of
+standard MPI\-2 bindings for C++ to Python. Any user of the standard
+C/C++ MPI bindings should be able to use this module without need of
+learning a new interface.
+.SS Communicating Python Objects and Array Data
+.sp
+The Python standard library supports different mechanisms for data
+persistence. Many of them rely on disk storage, but \fIpickling\fP and
+\fImarshaling\fP can also work with memory buffers.
+.sp
+The \fI\%pickle\fP modules provide user\-extensible facilities to
+serialize general Python objects using ASCII or binary formats. The
+\fI\%marshal\fP module provides facilities to serialize built\-in Python
+objects using a binary format specific to Python, but independent of
+machine architecture issues.
+.sp
+\fIMPI for Python\fP can communicate any built\-in or user\-defined Python
+object taking advantage of the features provided by the \fI\%pickle\fP
+module. These facilities will be routinely used to build binary
+representations of objects to communicate (at sending processes), and
+restoring them back (at receiving processes).
+.sp
+Although simple and general, the serialization approach (i.e.,
+\fIpickling\fP and \fIunpickling\fP) previously discussed imposes important
+overheads in memory as well as processor usage, especially in the
+scenario of objects with large memory footprints being
+communicated. Pickling general Python objects, ranging from primitive
+or container built\-in types to user\-defined classes, necessarily
+requires computer resources.  Processing is also needed for
+dispatching the appropriate serialization method (that depends on the
+type of the object) and doing the actual packing. Additional memory is
+always needed, and if its total amount is not known \fIa priori\fP, many
+reallocations can occur.  Indeed, in the case of large numeric arrays,
+this is certainly unacceptable and precludes communication of objects
+occupying half or more of the available memory resources.
+.sp
+\fIMPI for Python\fP supports direct communication of any object exporting
+the single\-segment buffer interface. This interface is a standard
+Python mechanism provided by some types (e.g., strings and numeric
+arrays), allowing access in the C side to a contiguous memory buffer
+(i.e., address and length) containing the relevant data. This feature,
+in conjunction with the capability of constructing user\-defined MPI
+datatypes describing complicated memory layouts, enables the
+implementation of many algorithms involving multidimensional numeric
+arrays (e.g., image processing, fast Fourier transforms, finite
+difference schemes on structured Cartesian grids) directly in Python,
+with negligible overhead, and almost as fast as compiled Fortran, C,
+or C++ codes.
+.SS Communicators
+.sp
+In \fIMPI for Python\fP, \fBMPI.Comm\fP is the base class of
+communicators. The \fBMPI.Intracomm\fP and \fBMPI.Intercomm\fP
+classes are sublcasses of the \fBMPI.Comm\fP class.  The
+\fBMPI.Comm.Is_inter()\fP method (and \fBMPI.Comm.Is_intra()\fP,
+provided for convenience but not part of the MPI specification) is
+defined for communicator objects and can be used to determine the
+particular communicator class.
+.sp
+The two predefined intracommunicator instances are available:
+\fBMPI.COMM_SELF\fP and \fBMPI.COMM_WORLD\fP\&. From them, new
+communicators can be created as needed.
+.sp
+The number of processes in a communicator and the calling process rank
+can be respectively obtained with methods \fBMPI.Comm.Get_size()\fP
+and \fBMPI.Comm.Get_rank()\fP\&. The associated process group can be
+retrieved from a communicator by calling the
+\fBMPI.Comm.Get_group()\fP method, which returns an instance of the
+\fBMPI.Group\fP class. Set operations with \fBMPI.Group\fP
+objects like like \fBMPI.Group.Union()\fP, \fBMPI.Group.Intersect()\fP
+and \fBMPI.Group.Difference()\fP are fully supported, as well as the
+creation of new communicators from these groups using
+\fBMPI.Comm.Create()\fP and \fBMPI.Comm.Create_group()\fP\&.
+.sp
+New communicator instances can be obtained with the
+\fBMPI.Comm.Clone()\fP, \fBMPI.Comm.Dup()\fP and
+\fBMPI.Comm.Split()\fP methods, as well methods
+\fBMPI.Intracomm.Create_intercomm()\fP and
+\fBMPI.Intercomm.Merge()\fP\&.
+.sp
+Virtual topologies (\fBMPI.Cartcomm\fP, \fBMPI.Graphcomm\fP and
+\fBMPI.Distgraphcomm\fP classes, which are specializations of the
+\fBMPI.Intracomm\fP class) are fully supported. New instances can
+be obtained from intracommunicator instances with factory methods
+\fBMPI.Intracomm.Create_cart()\fP and
+\fBMPI.Intracomm.Create_graph()\fP\&.
+.SS Point\-to\-Point Communications
+.sp
+Point to point communication is a fundamental capability of message
+passing systems. This mechanism enables the transmission of data
+between a pair of processes, one side sending, the other receiving.
+.sp
+MPI provides a set of \fIsend\fP and \fIreceive\fP functions allowing the
+communication of \fItyped\fP data with an associated \fItag\fP\&.  The type
+information enables the conversion of data representation from one
+architecture to another in the case of heterogeneous computing
+environments; additionally, it allows the representation of
+non\-contiguous data layouts and user\-defined datatypes, thus avoiding
+the overhead of (otherwise unavoidable) packing/unpacking
+operations. The tag information allows selectivity of messages at the
+receiving end.
+.SS Blocking Communications
+.sp
+MPI provides basic send and receive functions that are \fIblocking\fP\&.
+These functions block the caller until the data buffers involved in
+the communication can be safely reused by the application program.
+.sp
+In \fIMPI for Python\fP, the \fBMPI.Comm.Send()\fP, \fBMPI.Comm.Recv()\fP
+and \fBMPI.Comm.Sendrecv()\fP methods of communicator objects provide
+support for blocking point\-to\-point communications within
+\fBMPI.Intracomm\fP and \fBMPI.Intercomm\fP instances. These
+methods can communicate memory buffers. The variants
+\fBMPI.Comm.send()\fP, \fBMPI.Comm.recv()\fP and
+\fBMPI.Comm.sendrecv()\fP can communicate general Python objects.
+.SS Nonblocking Communications
+.sp
+On many systems, performance can be significantly increased by
+overlapping communication and computation. This is particularly true
+on systems where communication can be executed autonomously by an
+intelligent, dedicated communication controller.
+.sp
+MPI provides \fInonblocking\fP send and receive functions. They allow the
+possible overlap of communication and computation.  Non\-blocking
+communication always come in two parts: posting functions, which begin
+the requested operation; and test\-for\-completion functions, which
+allow to discover whether the requested operation has completed.
+.sp
+In \fIMPI for Python\fP, the \fBMPI.Comm.Isend()\fP and
+\fBMPI.Comm.Irecv()\fP methods initiate send and receive operations,
+respectively. These methods return a \fBMPI.Request\fP instance,
+uniquely identifying the started operation.  Its completion can be
+managed using the \fBMPI.Request.Test()\fP, \fBMPI.Request.Wait()\fP
+and \fBMPI.Request.Cancel()\fP methods. The management of
+\fBMPI.Request\fP objects and associated memory buffers involved in
+communication requires a careful, rather low\-level coordination. Users
+must ensure that objects exposing their memory buffers are not
+accessed at the Python level while they are involved in nonblocking
+message\-passing operations.
+.SS Persistent Communications
+.sp
+Often a communication with the same argument list is repeatedly
+executed within an inner loop. In such cases, communication can be
+further optimized by using persistent communication, a particular case
+of nonblocking communication allowing the reduction of the overhead
+between processes and communication controllers. Furthermore , this
+kind of optimization can also alleviate the extra call overheads
+associated to interpreted, dynamic languages like Python.
+.sp
+In \fIMPI for Python\fP, the \fBMPI.Comm.Send_init()\fP and
+\fBMPI.Comm.Recv_init()\fP methods create persistent requests for a
+send and receive operation, respectively.  These methods return an
+instance of the \fBMPI.Prequest\fP class, a subclass of the
+\fBMPI.Request\fP class. The actual communication can be
+effectively started using the \fBMPI.Prequest.Start()\fP method, and
+its completion can be managed as previously described.
+.SS Collective Communications
+.sp
+Collective communications allow the transmittal of data between
+multiple processes of a group simultaneously. The syntax and semantics
+of collective functions is consistent with point\-to\-point
+communication. Collective functions communicate \fItyped\fP data, but
+messages are not paired with an associated \fItag\fP; selectivity of
+messages is implied in the calling order. Additionally, collective
+functions come in blocking versions only.
+.sp
+The more commonly used collective communication operations are the
+following.
+.INDENT 0.0
+.IP \(bu 2
+Barrier synchronization across all group members.
+.IP \(bu 2
+Global communication functions
+.INDENT 2.0
+.IP \(bu 2
+Broadcast data from one member to all members of a group.
+.IP \(bu 2
+Gather data from all members to one member of a group.
+.IP \(bu 2
+Scatter data from one member to all members of a group.
+.UNINDENT
+.IP \(bu 2
+Global reduction operations such as sum, maximum, minimum, etc.
+.UNINDENT
+.sp
+In \fIMPI for Python\fP, the \fBMPI.Comm.Bcast()\fP,
+\fBMPI.Comm.Scatter()\fP, \fBMPI.Comm.Gather()\fP,
+\fBMPI.Comm.Allgather()\fP, and \fBMPI.Comm.Alltoall()\fP
+\fBMPI.Comm.Alltoallw()\fP methods provide support for collective
+communications of memory buffers. The lower\-case variants
+\fBMPI.Comm.bcast()\fP, \fBMPI.Comm.scatter()\fP,
+\fBMPI.Comm.gather()\fP, \fBMPI.Comm.allgather()\fP and
+\fBMPI.Comm.alltoall()\fP can communicate general Python objects.  The
+vector variants (which can communicate different amounts of data to
+each process) \fBMPI.Comm.Scatterv()\fP, \fBMPI.Comm.Gatherv()\fP,
+\fBMPI.Comm.Allgatherv()\fP, \fBMPI.Comm.Alltoallv()\fP and
+\fBMPI.Comm.Alltoallw()\fP are also supported, they can only
+communicate objects exposing memory buffers.
+.sp
+Global reduction operations on memory buffers are accessible through
+the \fBMPI.Comm.Reduce()\fP, \fIMPI.Comm.Reduce_scatter\fP,
+\fBMPI.Comm.Allreduce()\fP, \fBMPI.Intracomm.Scan()\fP and
+\fBMPI.Intracomm.Exscan()\fP methods. The lower\-case variants
+\fBMPI.Comm.reduce()\fP, \fBMPI.Comm.allreduce()\fP,
+\fBMPI.Intracomm.scan()\fP and \fBMPI.Intracomm.exscan()\fP can
+communicate general Python objects; however, the actual required
+reduction computations are performed sequentially at some process. All
+the predefined (i.e., \fBMPI.SUM\fP, \fBMPI.PROD\fP,
+\fBMPI.MAX\fP, etc.)  reduction operations can be applied.
+.SS Dynamic Process Management
+.sp
+In the context of the MPI\-1 specification, a parallel application is
+static; that is, no processes can be added to or deleted from a
+running application after it has been started. Fortunately, this
+limitation was addressed in MPI\-2. The new specification added a
+process management model providing a basic interface between an
+application and external resources and process managers.
+.sp
+This MPI\-2 extension can be really useful, especially for sequential
+applications built on top of parallel modules, or parallel
+applications with a client/server model. The MPI\-2 process model
+provides a mechanism to create new processes and establish
+communication between them and the existing MPI application. It also
+provides mechanisms to establish communication between two existing
+MPI applications, even when one did not \fIstart\fP the other.
+.sp
+In \fIMPI for Python\fP, new independent process groups can be created by
+calling the \fBMPI.Intracomm.Spawn()\fP method within an
+intracommunicator.  This call returns a new intercommunicator (i.e.,
+an \fBMPI.Intercomm\fP instance) at the parent process group. The
+child process group can retrieve the matching intercommunicator by
+calling the \fBMPI.Comm.Get_parent()\fP class method. At each side,
+the new intercommunicator can be used to perform point to point and
+collective communications between the parent and child groups of
+processes.
+.sp
+Alternatively, disjoint groups of processes can establish
+communication using a client/server approach. Any server application
+must first call the \fBMPI.Open_port()\fP function to open a \fIport\fP
+and the \fBMPI.Publish_name()\fP function to publish a provided
+\fIservice\fP, and next call the \fBMPI.Intracomm.Accept()\fP method.  Any
+client applications can first find a published \fIservice\fP by calling
+the \fBMPI.Lookup_name()\fP function, which returns the \fIport\fP where a
+server can be contacted; and next call the
+\fBMPI.Intracomm.Connect()\fP method. Both
+\fBMPI.Intracomm.Accept()\fP and \fBMPI.Intracomm.Connect()\fP methods
+return an \fBMPI.Intercomm\fP instance. When connection between
+client/server processes is no longer needed, all of them must
+cooperatively call the \fBMPI.Comm.Disconnect()\fP
+method. Additionally, server applications should release resources by
+calling the \fBMPI.Unpublish_name()\fP and \fBMPI.Close_port()\fP
+functions.
+.SS One\-Sided Communications
+.sp
+One\-sided communications (also called \fIRemote Memory Access\fP, \fIRMA\fP)
+supplements the traditional two\-sided, send/receive based MPI
+communication model with a one\-sided, put/get based
+interface. One\-sided communication that can take advantage of the
+capabilities of highly specialized network hardware. Additionally,
+this extension lowers latency and software overhead in applications
+written using a shared\-memory\-like paradigm.
+.sp
+The MPI specification revolves around the use of objects called
+\fIwindows\fP; they intuitively specify regions of a process\(aqs memory that
+have been made available for remote read and write operations.  The
+published memory blocks can be accessed through three functions for
+put (remote send), get (remote write), and accumulate (remote update
+or reduction) data items. A much larger number of functions support
+different synchronization styles; the semantics of these
+synchronization operations are fairly complex.
+.sp
+In \fIMPI for Python\fP, one\-sided operations are available by using
+instances of the \fBMPI.Win\fP class. New window objects are
+created by calling the \fBMPI.Win.Create()\fP method at all processes
+within a communicator and specifying a memory buffer . When a window
+instance is no longer needed, the \fBMPI.Win.Free()\fP method should
+be called.
+.sp
+The three one\-sided MPI operations for remote write, read and
+reduction are available through calling the methods
+\fBMPI.Win.Put()\fP, \fBMPI.Win.Get()\fP, and
+\fBMPI.Win.Accumulate()\fP respectively within a \fBWin\fP
+instance.  These methods need an integer rank identifying the target
+process and an integer offset relative the base address of the remote
+memory block being accessed.
+.sp
+The one\-sided operations read, write, and reduction are implicitly
+nonblocking, and must be synchronized by using two primary modes.
+Active target synchronization requires the origin process to call the
+\fBMPI.Win.Start()\fP and \fBMPI.Win.Complete()\fP methods at the
+origin process, and target process cooperates by calling the
+\fBMPI.Win.Post()\fP and \fBMPI.Win.Wait()\fP methods. There is also a
+collective variant provided by the \fBMPI.Win.Fence()\fP
+method. Passive target synchronization is more lenient, only the
+origin process calls the \fBMPI.Win.Lock()\fP and
+\fBMPI.Win.Unlock()\fP methods. Locks are used to protect remote
+accesses to the locked remote window and to protect local load/store
+accesses to a locked local window.
+.SS Parallel Input/Output
+.sp
+The POSIX standard provides a model of a widely portable file
+system. However, the optimization needed for parallel input/output
+cannot be achieved with this generic interface. In order to ensure
+efficiency and scalability, the underlying parallel input/output
+system must provide a high\-level interface supporting partitioning of
+file data among processes and a collective interface supporting
+complete transfers of global data structures between process memories
+and files. Additionally, further efficiencies can be gained via
+support for asynchronous input/output, strided accesses to data, and
+control over physical file layout on storage devices. This scenario
+motivated the inclusion in the MPI\-2 standard of a custom interface in
+order to support more elaborated parallel input/output operations.
+.sp
+The MPI specification for parallel input/output revolves around the
+use objects called \fIfiles\fP\&. As defined by MPI, files are not just
+contiguous byte streams. Instead, they are regarded as ordered
+collections of \fItyped\fP data items. MPI supports sequential or random
+access to any integral set of these items. Furthermore, files are
+opened collectively by a group of processes.
+.sp
+The common patterns for accessing a shared file (broadcast, scatter,
+gather, reduction) is expressed by using user\-defined datatypes.
+Compared to the communication patterns of point\-to\-point and
+collective communications, this approach has the advantage of added
+flexibility and expressiveness. Data access operations (read and
+write) are defined for different kinds of positioning (using explicit
+offsets, individual file pointers, and shared file pointers),
+coordination (non\-collective and collective), and synchronism
+(blocking, nonblocking, and split collective with begin/end phases).
+.sp
+In \fIMPI for Python\fP, all MPI input/output operations are performed
+through instances of the \fBMPI.File\fP class. File handles are
+obtained by calling the \fBMPI.File.Open()\fP method at all processes
+within a communicator and providing a file name and the intended
+access mode.  After use, they must be closed by calling the
+\fBMPI.File.Close()\fP method.  Files even can be deleted by calling
+method \fBMPI.File.Delete()\fP\&.
+.sp
+After creation, files are typically associated with a per\-process
+\fIview\fP\&. The view defines the current set of data visible and
+accessible from an open file as an ordered set of elementary
+datatypes. This data layout can be set and queried with the
+\fBMPI.File.Set_view()\fP and \fBMPI.File.Get_view()\fP methods
+respectively.
+.sp
+Actual input/output operations are achieved by many methods combining
+read and write calls with different behavior regarding positioning,
+coordination, and synchronism. Summing up, \fIMPI for Python\fP provides
+the thirty (30) methods defined in MPI\-2 for reading from or writing
+to files using explicit offsets or file pointers (individual or
+shared), in blocking or nonblocking and collective or noncollective
+versions.
+.SS Environmental Management
+.SS Initialization and Exit
+.sp
+Module functions \fBMPI.Init()\fP or \fBMPI.Init_thread()\fP and
+\fBMPI.Finalize()\fP provide MPI initialization and finalization
+respectively. Module functions \fBMPI.Is_initialized()\fP and
+\fBMPI.Is_finalized()\fP provide the respective tests for
+initialization and finalization.
+.sp
+\fBNOTE:\fP
+.INDENT 0.0
+.INDENT 3.5
+\fBMPI_Init()\fP or \fBMPI_Init_thread()\fP is actually
+called when you import the \fBMPI\fP module from the \fBmpi4py\fP
+package, but only if MPI is not already initialized. In such case,
+calling \fBMPI.Init()\fP or \fBMPI.Init_thread()\fP from Python is
+expected to generate an MPI error, and in turn an exception will be
+raised.
+.UNINDENT
+.UNINDENT
+.sp
+\fBNOTE:\fP
+.INDENT 0.0
+.INDENT 3.5
+\fBMPI_Finalize()\fP is registered (by using Python C/API
+function \fI\%Py_AtExit()\fP) for being automatically called when
+Python processes exit, but only if \fBmpi4py\fP actually
+initialized MPI. Therefore, there is no need to call
+\fBMPI.Finalize()\fP from Python to ensure MPI finalization.
+.UNINDENT
+.UNINDENT
+.SS Implementation Information
+.INDENT 0.0
+.IP \(bu 2
+The MPI version number can be retrieved from module function
+\fBMPI.Get_version()\fP\&. It returns a two\-integer tuple
+\fB(version,subversion)\fP\&.
+.IP \(bu 2
+The \fBMPI.Get_processor_name()\fP function can be used to access
+the processor name.
+.IP \(bu 2
+The values of predefined attributes attached to the world
+communicator can be obtained by calling the
+\fBMPI.Comm.Get_attr()\fP method within the \fBMPI.COMM_WORLD\fP
+instance.
+.UNINDENT
+.SS Timers
+.sp
+MPI timer functionalities are available through the \fBMPI.Wtime()\fP
+and \fBMPI.Wtick()\fP functions.
+.SS Error Handling
+.sp
+In order facilitate handle sharing with other Python modules
+interfacing MPI\-based parallel libraries, the predefined MPI error
+handlers \fBMPI.ERRORS_RETURN\fP and \fBMPI.ERRORS_ARE_FATAL\fP
+can be assigned to and retrieved from communicators, windows and files
+using methods \fBMPI.{Comm|Win|File}.Set_errhandler()\fP and
+\fBMPI.{Comm|Win|File}.Get_errhandler()\fP\&.
+.sp
+When the predefined error handler \fBMPI.ERRORS_RETURN\fP is set,
+errors returned from MPI calls within Python code will raise an
+instance of the exception class \fBMPI.Exception\fP, which is a
+subclass of the standard Python exception \fI\%RuntimeError\fP\&.
+.sp
+\fBNOTE:\fP
+.INDENT 0.0
+.INDENT 3.5
+After import, mpi4py overrides the default MPI rules governing
+inheritance of error handlers. The \fBMPI.ERRORS_RETURN\fP error
+handler is set in the predefined \fBMPI.COMM_SELF\fP and
+\fBMPI.COMM_WORLD\fP communicators, as well as any new
+\fBMPI.Comm\fP, \fBMPI.Win\fP, or \fBMPI.File\fP instance
+created through mpi4py. If you ever pass such handles to
+C/C++/Fortran library code, it is recommended to set the
+\fBMPI.ERRORS_ARE_FATAL\fP error handler on them to ensure MPI
+errors do not pass silently.
+.UNINDENT
+.UNINDENT
+.sp
+\fBWARNING:\fP
+.INDENT 0.0
+.INDENT 3.5
+Importing with \fBfrom mpi4py.MPI import *\fP will cause a name
+clashing with the standard Python \fI\%Exception\fP base class.
+.UNINDENT
+.UNINDENT
+.SH TUTORIAL
+.sp
+\fBWARNING:\fP
+.INDENT 0.0
+.INDENT 3.5
+Under construction. Contributions very welcome!
+.UNINDENT
+.UNINDENT
+.sp
+\fIMPI for Python\fP supports convenient, \fIpickle\fP\-based communication of
+generic Python object as well as fast, near C\-speed, direct array data
+communication of buffer\-provider objects (e.g., NumPy arrays).
+.INDENT 0.0
+.IP \(bu 2
+Communication of generic Python objects
+.sp
+You have to use \fBall\-lowercase\fP methods (of the \fBComm\fP
+class), like \fBsend()\fP, \fBrecv()\fP, \fBbcast()\fP\&. An
+object to be sent is passed as a paramenter to the communication
+call, and the received object is simply the return value.
+.sp
+The \fBisend()\fP and \fBirecv()\fP methods return
+\fBRequest\fP instances; completion of these methods can be
+managed using the \fBtest()\fP and \fBwait()\fP methods of the
+\fBRequest\fP class.
+.sp
+The \fBrecv()\fP and \fBirecv()\fP methods may be passed a buffer
+object that can be repeatedly used to receive messages avoiding
+internal memory allocation. This buffer must be sufficiently large
+to accommodate the transmitted messages; hence, any buffer passed to
+\fBrecv()\fP or \fBirecv()\fP must be at least as long as the
+\fIpickled\fP data transmitted to the receiver.
+.sp
+Collective calls like \fBscatter()\fP, \fBgather()\fP,
+\fBallgather()\fP, \fBalltoall()\fP expect a single value or a
+sequence of \fBComm.size\fP elements at the root or all
+process. They return a single value, a list of \fBComm.size\fP
+elements, or \fBNone\fP\&.
+.IP \(bu 2
+Communication of buffer\-like objects
+.sp
+You have to use method names starting with an \fBupper\-case\fP letter
+(of the \fBComm\fP class), like \fBSend()\fP, \fBRecv()\fP,
+\fBBcast()\fP, \fBScatter()\fP, \fBGather()\fP\&.
+.sp
+In general, buffer arguments to these calls must be explicitly
+specified by using a 2/3\-list/tuple like \fB[data, MPI.DOUBLE]\fP, or
+\fB[data, count, MPI.DOUBLE]\fP (the former one uses the byte\-size of
+\fBdata\fP and the extent of the MPI datatype to define \fBcount\fP).
+.sp
+For vector collectives communication operations like
+\fBScatterv()\fP and \fBGatherv()\fP, buffer arguments are
+specified as \fB[data, count, displ, datatype]\fP, where \fBcount\fP and
+\fBdispl\fP are sequences of integral values.
+.sp
+Automatic MPI datatype discovery for NumPy arrays and PEP\-3118
+buffers is supported, but limited to basic C types (all C/C99\-native
+signed/unsigned integral types and single/double precision
+real/complex floating types) and availability of matching datatypes
+in the underlying MPI implementation. In this case, the
+buffer\-provider object can be passed directly as a buffer argument,
+the count and MPI datatype will be inferred.
+.UNINDENT
+.SS Running Python scripts with MPI
+.sp
+Most MPI programs can be run with the command \fBmpiexec\fP\&. In practice, running
+Python programs looks like:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+$ mpiexec \-n 4 python script.py
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+to run the program with 4 processors.
+.SS Point\-to\-Point Communication
+.INDENT 0.0
+.IP \(bu 2
+Python objects (\fI\%pickle\fP under the hood):
+.INDENT 2.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+from mpi4py import MPI
+
+comm = MPI.COMM_WORLD
+rank = comm.Get_rank()
+
+if rank == 0:
+    data = {\(aqa\(aq: 7, \(aqb\(aq: 3.14}
+    comm.send(data, dest=1, tag=11)
+elif rank == 1:
+    data = comm.recv(source=0, tag=11)
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.IP \(bu 2
+Python objects with non\-blocking communication:
+.INDENT 2.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+from mpi4py import MPI
+
+comm = MPI.COMM_WORLD
+rank = comm.Get_rank()
+
+if rank == 0:
+    data = {\(aqa\(aq: 7, \(aqb\(aq: 3.14}
+    req = comm.isend(data, dest=1, tag=11)
+    req.wait()
+elif rank == 1:
+    req = comm.irecv(source=0, tag=11)
+    data = req.wait()
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.IP \(bu 2
+NumPy arrays (the fast way!):
+.INDENT 2.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+from mpi4py import MPI
+import numpy
+
+comm = MPI.COMM_WORLD
+rank = comm.Get_rank()
+
+# passing MPI datatypes explicitly
+if rank == 0:
+    data = numpy.arange(1000, dtype=\(aqi\(aq)
+    comm.Send([data, MPI.INT], dest=1, tag=77)
+elif rank == 1:
+    data = numpy.empty(1000, dtype=\(aqi\(aq)
+    comm.Recv([data, MPI.INT], source=0, tag=77)
+
+# automatic MPI datatype discovery
+if rank == 0:
+    data = numpy.arange(100, dtype=numpy.float64)
+    comm.Send(data, dest=1, tag=13)
+elif rank == 1:
+    data = numpy.empty(100, dtype=numpy.float64)
+    comm.Recv(data, source=0, tag=13)
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.SS Collective Communication
+.INDENT 0.0
+.IP \(bu 2
+Broadcasting a Python dictionary:
+.INDENT 2.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+from mpi4py import MPI
+
+comm = MPI.COMM_WORLD
+rank = comm.Get_rank()
+
+if rank == 0:
+    data = {\(aqkey1\(aq : [7, 2.72, 2+3j],
+            \(aqkey2\(aq : ( \(aqabc\(aq, \(aqxyz\(aq)}
+else:
+    data = None
+data = comm.bcast(data, root=0)
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.IP \(bu 2
+Scattering Python objects:
+.INDENT 2.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+from mpi4py import MPI
+
+comm = MPI.COMM_WORLD
+size = comm.Get_size()
+rank = comm.Get_rank()
+
+if rank == 0:
+    data = [(i+1)**2 for i in range(size)]
+else:
+    data = None
+data = comm.scatter(data, root=0)
+assert data == (rank+1)**2
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.IP \(bu 2
+Gathering Python objects:
+.INDENT 2.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+from mpi4py import MPI
+
+comm = MPI.COMM_WORLD
+size = comm.Get_size()
+rank = comm.Get_rank()
+
+data = (rank+1)**2
+data = comm.gather(data, root=0)
+if rank == 0:
+    for i in range(size):
+        assert data[i] == (i+1)**2
+else:
+    assert data is None
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.IP \(bu 2
+Broadcasting a NumPy array:
+.INDENT 2.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+from mpi4py import MPI
+import numpy as np
+
+comm = MPI.COMM_WORLD
+rank = comm.Get_rank()
+
+if rank == 0:
+    data = np.arange(100, dtype=\(aqi\(aq)
+else:
+    data = np.empty(100, dtype=\(aqi\(aq)
+comm.Bcast(data, root=0)
+for i in range(100):
+    assert data[i] == i
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.IP \(bu 2
+Scattering NumPy arrays:
+.INDENT 2.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+from mpi4py import MPI
+import numpy as np
+
+comm = MPI.COMM_WORLD
+size = comm.Get_size()
+rank = comm.Get_rank()
+
+sendbuf = None
+if rank == 0:
+    sendbuf = np.empty([size, 100], dtype=\(aqi\(aq)
+    sendbuf.T[:,:] = range(size)
+recvbuf = np.empty(100, dtype=\(aqi\(aq)
+comm.Scatter(sendbuf, recvbuf, root=0)
+assert np.allclose(recvbuf, rank)
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.IP \(bu 2
+Gathering NumPy arrays:
+.INDENT 2.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+from mpi4py import MPI
+import numpy as np
+
+comm = MPI.COMM_WORLD
+size = comm.Get_size()
+rank = comm.Get_rank()
+
+sendbuf = np.zeros(100, dtype=\(aqi\(aq) + rank
+recvbuf = None
+if rank == 0:
+    recvbuf = np.empty([size, 100], dtype=\(aqi\(aq)
+comm.Gather(sendbuf, recvbuf, root=0)
+if rank == 0:
+    for i in range(size):
+        assert np.allclose(recvbuf[i,:], i)
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.IP \(bu 2
+Parallel matrix\-vector product:
+.INDENT 2.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+from mpi4py import MPI
+import numpy
+
+def matvec(comm, A, x):
+    m = A.shape[0] # local rows
+    p = comm.Get_size()
+    xg = numpy.zeros(m*p, dtype=\(aqd\(aq)
+    comm.Allgather([x,  MPI.DOUBLE],
+                   [xg, MPI.DOUBLE])
+    y = numpy.dot(A, xg)
+    return y
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.SS MPI\-IO
+.INDENT 0.0
+.IP \(bu 2
+Collective I/O with NumPy arrays:
+.INDENT 2.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+from mpi4py import MPI
+import numpy as np
+
+amode = MPI.MODE_WRONLY|MPI.MODE_CREATE
+comm = MPI.COMM_WORLD
+fh = MPI.File.Open(comm, "./datafile.contig", amode)
+
+buffer = np.empty(10, dtype=np.int)
+buffer[:] = comm.Get_rank()
+
+offset = comm.Get_rank()*buffer.nbytes
+fh.Write_at_all(offset, buffer)
+
+fh.Close()
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.IP \(bu 2
+Non\-contiguous Collective I/O with NumPy arrays and datatypes:
+.INDENT 2.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+from mpi4py import MPI
+import numpy as np
+
+comm = MPI.COMM_WORLD
+rank = comm.Get_rank()
+size = comm.Get_size()
+
+amode = MPI.MODE_WRONLY|MPI.MODE_CREATE
+fh = MPI.File.Open(comm, "./datafile.noncontig", amode)
+
+item_count = 10
+
+buffer = np.empty(item_count, dtype=\(aqi\(aq)
+buffer[:] = rank
+
+filetype = MPI.INT.Create_vector(item_count, 1, size)
+filetype.Commit()
+
+displacement = MPI.INT.Get_size()*rank
+fh.Set_view(displacement, filetype=filetype)
+
+fh.Write_all(buffer)
+filetype.Free()
+fh.Close()
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.SS Dynamic Process Management
+.INDENT 0.0
+.IP \(bu 2
+Compute Pi \- Master (or parent, or client) side:
+.INDENT 2.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+#!/usr/bin/env python
+from mpi4py import MPI
+import numpy
+import sys
+
+comm = MPI.COMM_SELF.Spawn(sys.executable,
+                           args=[\(aqcpi.py\(aq],
+                           maxprocs=5)
+
+N = numpy.array(100, \(aqi\(aq)
+comm.Bcast([N, MPI.INT], root=MPI.ROOT)
+PI = numpy.array(0.0, \(aqd\(aq)
+comm.Reduce(None, [PI, MPI.DOUBLE],
+            op=MPI.SUM, root=MPI.ROOT)
+print(PI)
+
+comm.Disconnect()
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.IP \(bu 2
+Compute Pi \- Worker (or child, or server) side:
+.INDENT 2.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+#!/usr/bin/env python
+from mpi4py import MPI
+import numpy
+
+comm = MPI.Comm.Get_parent()
+size = comm.Get_size()
+rank = comm.Get_rank()
+
+N = numpy.array(0, dtype=\(aqi\(aq)
+comm.Bcast([N, MPI.INT], root=0)
+h = 1.0 / N; s = 0.0
+for i in range(rank, N, size):
+    x = h * (i + 0.5)
+    s += 4.0 / (1.0 + x**2)
+PI = numpy.array(s * h, dtype=\(aqd\(aq)
+comm.Reduce([PI, MPI.DOUBLE], None,
+            op=MPI.SUM, root=0)
+
+comm.Disconnect()
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.SS Wrapping with SWIG
+.INDENT 0.0
+.IP \(bu 2
+C source:
+.INDENT 2.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+/* file: helloworld.c */
+void sayhello(MPI_Comm comm)
+{
+  int size, rank;
+  MPI_Comm_size(comm, &size);
+  MPI_Comm_rank(comm, &rank);
+  printf("Hello, World! "
+         "I am process %d of %d.\en",
+         rank, size);
+}
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.IP \(bu 2
+SWIG interface file:
+.INDENT 2.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+// file: helloworld.i
+%module helloworld
+%{
+#include <mpi.h>
+#include "helloworld.c"
+}%
+
+%include mpi4py/mpi4py.i
+%mpi4py_typemap(Comm, MPI_Comm);
+void sayhello(MPI_Comm comm);
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.IP \(bu 2
+Try it in the Python prompt:
+.INDENT 2.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+>>> from mpi4py import MPI
+>>> import helloworld
+>>> helloworld.sayhello(MPI.COMM_WORLD)
+Hello, World! I am process 0 of 1.
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.SS Wrapping with F2Py
+.INDENT 0.0
+.IP \(bu 2
+Fortran 90 source:
+.INDENT 2.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+! file: helloworld.f90
+subroutine sayhello(comm)
+  use mpi
+  implicit none
+  integer :: comm, rank, size, ierr
+  call MPI_Comm_size(comm, size, ierr)
+  call MPI_Comm_rank(comm, rank, ierr)
+  print *, \(aqHello, World! I am process \(aq,rank,\(aq of \(aq,size,\(aq.\(aq
+end subroutine sayhello
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.IP \(bu 2
+Compiling example using f2py
+.INDENT 2.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+$ f2py \-c \-\-f90exec=mpif90 helloworld.f90 \-m helloworld
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.IP \(bu 2
+Try it in the Python prompt:
+.INDENT 2.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+>>> from mpi4py import MPI
+>>> import helloworld
+>>> fcomm = MPI.COMM_WORLD.py2f()
+>>> helloworld.sayhello(fcomm)
+Hello, World! I am process 0 of 1.
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.SH MPI4PY.FUTURES
+.sp
+New in version 2.1.0.
+
+.sp
+This package provides a high\-level interface for asynchronously executing
+callables on a pool of worker processes using MPI for inter\-process
+communication.
+.SS concurrent.futures
+.sp
+The \fI\%mpi4py.futures\fP package is based on \fI\%concurrent.futures\fP from
+the Python standard library. More precisely, \fI\%mpi4py.futures\fP provides the
+\fI\%MPIPoolExecutor\fP class as a concrete implementation of the abstract
+class \fI\%Executor\fP\&.  The
+\fI\%submit()\fP interface schedules a callable to
+be executed asynchronously and returns a \fI\%Future\fP
+object representing the execution of the callable.
+\fI\%Future\fP instances can be queried for the call
+result or exception. Sets of \fI\%Future\fP instances can
+be passed to the \fI\%wait()\fP and
+\fI\%as_completed()\fP functions.
+.sp
+\fBNOTE:\fP
+.INDENT 0.0
+.INDENT 3.5
+The \fI\%concurrent.futures\fP package was introduced in Python 3.2. A
+\fI\%backport\fP targeting Python 2.7 is available on \fI\%PyPI\fP\&. The \fI\%mpi4py.futures\fP package uses
+\fI\%concurrent.futures\fP if available, either from the Python 3 standard
+library or the Python 2.7 backport if installed. Otherwise,
+\fI\%mpi4py.futures\fP uses a bundled copy of core functionality backported
+from Python 3.5 to work with Python 2.7.
+.UNINDENT
+.UNINDENT
+.sp
+\fBSEE ALSO:\fP
+.INDENT 0.0
+.INDENT 3.5
+.INDENT 0.0
+.TP
+.B Module \fI\%concurrent.futures\fP
+Documentation of the \fI\%concurrent.futures\fP standard module.
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.SS MPIPoolExecutor
+.sp
+The \fI\%MPIPoolExecutor\fP class uses a pool of MPI processes to execute
+calls asynchronously. By performing computations in separate processes, it
+allows to side\-step the \fI\%Global Interpreter Lock\fP but also means that
+only picklable objects can be executed and returned. The \fB__main__\fP module
+must be importable by worker processes, thus \fI\%MPIPoolExecutor\fP instances
+may not work in the interactive interpreter.
+.sp
+\fI\%MPIPoolExecutor\fP takes advantage of the dynamic process management
+features introduced in the MPI\-2 standard. In particular, the
+\fBMPI.Intracomm.Spawn()\fP method of \fBMPI.COMM_SELF()\fP is used in the
+master (or parent) process to spawn new worker (or child) processes running a
+Python interpreter. The master process uses a separate thread (one for each
+\fI\%MPIPoolExecutor\fP instance) to communicate back and forth with the
+workers.  The worker processes serve the execution of tasks in the main (and
+only) thread until they are signaled for completion.
+.sp
+\fBNOTE:\fP
+.INDENT 0.0
+.INDENT 3.5
+The worker processes must import the main script in order to \fIunpickle\fP any
+callable defined in the \fI\%__main__\fP module and submitted from the master
+process. Furthermore, the callables may need access to other global
+variables. At the worker processes,:mod:\fImpi4py.futures\fP executes the main
+script code (using the \fI\%runpy\fP module) under the \fB__worker__\fP
+namespace to define the \fI\%__main__\fP module. The \fI\%__main__\fP and
+\fB__worker__\fP modules are added to \fI\%sys.modules\fP (both at the
+master and worker processes) to ensure proper \fIpicklig\fP and \fIunpickling\fP\&.
+.UNINDENT
+.UNINDENT
+.sp
+\fBWARNING:\fP
+.INDENT 0.0
+.INDENT 3.5
+During the initial import phase at the workers, the main script cannot
+create and use new \fI\%MPIPoolExecutor\fP instances. Otherwise, each
+worker would attempt to spawn a new pool of workers, leading to infinite
+recursion. \fI\%mpi4py.futures\fP detects such recursive attempts to spawn
+new workers and aborts the MPI execution environment. As the main script
+code is run under the \fB__worker__\fP namespace, the easiest way to avoid
+spawn recursion is using the idiom \fBif __name__ == \(aq__main__\(aq: ...\fP in
+the main script.
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B class mpi4py.futures.MPIPoolExecutor(max_workers=None, **kwargs)
+An \fI\%Executor\fP subclass that executes calls
+asynchronously using a pool of at most \fImax_workers\fP processes.  If
+\fImax_workers\fP is \fBNone\fP or not given, its value is determined from the
+\fBMPI4PY_MAX_WORKERS\fP environment variable if set, or the MPI
+universe size if set, otherwise a single worker process is spawned.  If
+\fImax_workers\fP is lower than or equal to \fB0\fP, then a \fI\%ValueError\fP will
+be raised.
+.sp
+Other parameters:
+.INDENT 7.0
+.IP \(bu 2
+\fIpython_exe\fP: Path to the Python interpreter executable used to spawn
+worker processes, otherwise \fI\%sys.executable\fP is used.
+.IP \(bu 2
+\fIpython_args\fP: \fI\%list\fP or iterable with additional command line
+flags to pass to the Python executable. Command line flags determined from
+inspection of \fI\%sys.flags\fP, \fI\%sys.warnoptions\fP and
+\fI\%sys._xoptions\fP in are passed unconditionally.
+.IP \(bu 2
+\fImpi_info\fP: \fI\%dict\fP or iterable yielding \fB(key, value)\fP pairs.
+These \fB(key, value)\fP pairs are passed (through an \fBMPI.Info\fP
+object) to the \fBMPI.Intracomm.Spawn()\fP call used to spawn worker
+processes. This mechanism allows telling the MPI runtime system where and
+how to start the processes. Check the documentation of the backend MPI
+implementation about the set of keys it interprets and the corresponding
+format for values.
+.IP \(bu 2
+\fIglobals\fP: \fI\%dict\fP or iterable yielding \fB(name, value)\fP pairs to
+initialize the main module namespace in worker processes.
+.IP \(bu 2
+\fImain\fP: If set to \fBFalse\fP, do not import the \fB__main__\fP module in
+worker processes. Setting \fImain\fP to \fBFalse\fP prevents worker processes
+from accessing definitions in the parent \fB__main__\fP namespace.
+.IP \(bu 2
+\fIpath\fP: \fI\%list\fP or iterable with paths to append to \fI\%sys.path\fP
+in worker processes to extend the \fI\%module search path\fP\&.
+.IP \(bu 2
+\fIwdir\fP: Path to set the current working directory in worker processes
+using \fI\%os.chdir()\fP\&. The initial working directory is set by the MPI
+implementation. Quality MPI implementations should honor a \fBwdir\fP info
+key passed through \fImpi_info\fP, although such feature is not mandatory.
+.IP \(bu 2
+\fIenv\fP: \fI\%dict\fP or iterable yielding \fB(name, value)\fP pairs with
+environment variables to update \fI\%os.environ\fP in worker processes.
+The initial environment is set by the MPI implementation. MPI
+implementations may allow setting the initial environment through
+\fImpi_info\fP, however such feature is not required nor recommended by the
+MPI standard.
+.UNINDENT
+.INDENT 7.0
+.TP
+.B submit(func, *args, **kwargs)
+Schedule the callable, \fIfunc\fP, to be executed as \fBfunc(*args,
+**kwargs)\fP and returns a \fI\%Future\fP object
+representing the execution of the callable.
+.INDENT 7.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+executor = MPIPoolExecutor(max_workers=1)
+future = executor.submit(pow, 321, 1234)
+print(future.result())
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B map(func, *iterables, timeout=None, chunksize=1, **kwargs)
+Equivalent to \fI\%map(func, *iterables)\fP except \fIfunc\fP is
+executed asynchronously and several calls to \fIfunc\fP may be made
+concurrently, out\-of\-order, in separate processes.  The returned iterator
+raises a \fI\%TimeoutError\fP if
+\fI\%__next__()\fP is called and the result isn\(aqt available after
+\fItimeout\fP seconds from the original call to \fI\%map()\fP\&.
+\fItimeout\fP can be an int or a float.  If \fItimeout\fP is not specified or
+\fBNone\fP, there is no limit to the wait time.  If a call raises an
+exception, then that exception will be raised when its value is retrieved
+from the iterator. This method chops \fIiterables\fP into a number of chunks
+which it submits to the pool as separate tasks. The (approximate) size of
+these chunks can be specified by setting \fIchunksize\fP to a positive
+integer. For very long iterables, using a large value for \fIchunksize\fP can
+significantly improve performance compared to the default size of one. By
+default, the returned iterator yields results in\-order, waiting for
+successive tasks to complete . This behavior can be changed by passing
+the keyword argument \fIunordered\fP as \fBTrue\fP, then the result iterator
+will yield a result as soon as any of the tasks complete.
+.INDENT 7.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+executor = MPIPoolExecutor(max_workers=3)
+for result in executor.map(pow, [2]*32, range(32)):
+    print(result)
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B starmap(func, iterable, timeout=None, chunksize=1, **kwargs)
+Equivalent to \fI\%itertools.starmap(func, iterable)\fP\&. Used instead of \fI\%map()\fP when
+argument parameters are already grouped in tuples from a single iterable
+(the data has been "pre\-zipped"). \fI\%map(func, *iterable)\fP is
+equivalent to \fI\%starmap(func, zip(*iterable))\fP\&.
+.INDENT 7.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+executor = MPIPoolExecutor(max_workers=3)
+iterable = ((2, n) for n in range(32))
+for result in executor.starmap(pow, iterable):
+    print(result)
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B shutdown(wait=True)
+Signal the executor that it should free any resources that it is using
+when the currently pending futures are done executing.  Calls to
+\fI\%submit()\fP and \fI\%map()\fP made
+after \fI\%shutdown()\fP will raise \fI\%RuntimeError\fP\&.
+.sp
+If \fIwait\fP is \fBTrue\fP then this method will not return until all the
+pending futures are done executing and the resources associated with the
+executor have been freed.  If \fIwait\fP is \fBFalse\fP then this method will
+return immediately and the resources associated with the executor will be
+freed when all pending futures are done executing.  Regardless of the
+value of \fIwait\fP, the entire Python program will not exit until all
+pending futures are done executing.
+.sp
+You can avoid having to call this method explicitly if you use the
+\fI\%with\fP statement, which will shutdown the executor instance
+(waiting as if \fI\%shutdown()\fP were called with \fIwait\fP
+set to \fBTrue\fP).
+.INDENT 7.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+import time
+with MPIPoolExecutor(max_workers=1) as executor:
+    future = executor.submit(time.sleep, 2)
+assert future.done()
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.INDENT 7.0
+.TP
+.B bootup(wait=True)
+Signal the executor that it should allocate eagerly any required
+resources (in particular, MPI worker processes). If \fIwait\fP is \fBTrue\fP,
+then \fI\%bootup()\fP will not return until the executor
+resources are ready to process submissions.  Resources are automatically
+allocated in the first call to \fI\%submit()\fP, thus
+calling \fI\%bootup()\fP explicitly is seldom needed.
+.UNINDENT
+.UNINDENT
+.sp
+\fBNOTE:\fP
+.INDENT 0.0
+.INDENT 3.5
+As the master process uses a separate thread to perform MPI communication
+with the workers, the backend MPI implementation should provide support for
+\fBMPI.THREAD_MULTIPLE\fP\&. However, some popular MPI implementations do
+not support yet concurrent MPI calls from multiple threads. Additionally,
+users may decide to initialize MPI with a lower level of thread support. If
+the level of thread support in the backend MPI is less than
+\fBMPI.THREAD_MULTIPLE\fP, \fI\%mpi4py.futures\fP will use a global lock
+to serialize MPI calls. If the level of thread support is less than
+\fBMPI.THREAD_SERIALIZED\fP, \fI\%mpi4py.futures\fP will emit a
+\fI\%RuntimeWarning\fP\&.
+.UNINDENT
+.UNINDENT
+.sp
+\fBWARNING:\fP
+.INDENT 0.0
+.INDENT 3.5
+If the level of thread support in the backend MPI is less than
+\fBMPI.THREAD_SERIALIZED\fP (i.e, it is either \fBMPI.THREAD_SINGLE\fP
+or \fBMPI.THREAD_FUNNELED\fP), in theory \fI\%mpi4py.futures\fP cannot be
+used. Rather than raising an exception, \fI\%mpi4py.futures\fP emits a
+warning and takes a "cross\-fingers" attitude to continue execution in the
+hope that serializing MPI calls with a global lock will actually work.
+.UNINDENT
+.UNINDENT
+.SS MPICommExecutor
+.sp
+Legacy MPI\-1 implementations (as well as some vendor MPI\-2 implementations) do
+not support the dynamic process management features introduced in the MPI\-2
+standard. Additionally, job schedulers and batch systems in supercomputing
+facilities may pose additional complications to applications using the
+\fBMPI_Comm_spawn()\fP routine.
+.sp
+With these issues in mind, \fI\%mpi4py.futures\fP supports an additonal, more
+traditional, SPMD\-like usage pattern requiring MPI\-1 calls only. Python
+applications are started the usual way, e.g., using the \fBmpiexec\fP
+command. Python code should make a collective call to the
+\fI\%MPICommExecutor\fP context manager to partition the set of MPI processes
+within a MPI communicator in one master processes and many workers
+processes. The master process gets access to an \fI\%MPIPoolExecutor\fP
+instance to submit tasks. Meanwhile, the worker process follow a different
+execution path and team\-up to execute the tasks submitted from the master.
+.sp
+Besides alleviating the lack of dynamic process managment features in legacy
+MPI\-1 or partial MPI\-2 implementations, the \fI\%MPICommExecutor\fP context
+manager may be useful in classic MPI\-based Python applications willing to take
+advantage of the simple, task\-based, master/worker approach available in the
+\fI\%mpi4py.futures\fP package.
+.INDENT 0.0
+.TP
+.B class mpi4py.futures.MPICommExecutor(comm=None, root=0)
+Context manager for \fI\%MPIPoolExecutor\fP\&. This context manager splits a
+MPI (intra)communicator \fIcomm\fP (defaults to \fBMPI.COMM_WORLD\fP if not
+provided or \fBNone\fP) in two disjoint sets: a single master process (with
+rank \fIroot\fP in \fIcomm\fP) and the remaining worker processes. These sets are
+then connected through an intercommunicator.  The target of the
+\fI\%with\fP statement is assigned either an \fI\%MPIPoolExecutor\fP
+instance (at the master) or \fBNone\fP (at the workers).
+.INDENT 7.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+from mpi4py import MPI
+from mpi4py.futures import MPICommExecutor
+
+with MPICommExecutor(MPI.COMM_WORLD, root=0) as executor:
+    if executor is not None:
+       future = executor.submit(abs, \-42)
+       assert future.result() == 42
+       answer = set(executor.map(abs, [\-42, 42]))
+       assert answer == {42}
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.sp
+\fBWARNING:\fP
+.INDENT 0.0
+.INDENT 3.5
+If \fI\%MPICommExecutor\fP is passed a communicator of size one (e.g.,
+\fBMPI.COMM_SELF\fP), then the executor instace assigned to the target of
+the \fI\%with\fP statement will execute all submitted tasks in a single
+worker thread, thus ensuring that task execution still progress
+asynchronously. However, the \fI\%GIL\fP will prevent the main and worker
+threads from running concurrently in multicore processors. Moreover, the
+thread context switching may harm noticeably the performance of CPU\-bound
+tasks. In case of I/O\-bound tasks, the \fI\%GIL\fP is not usually an issue,
+however, as a single worker thread is used, it progress one task at a
+time. We advice against using \fI\%MPICommExecutor\fP with communicators of
+size one and suggest refactoring your code to use instead a
+\fI\%ThreadPoolExecutor\fP\&.
+.UNINDENT
+.UNINDENT
+.SS Command line
+.sp
+Recalling the issues related to the lack of support for dynamic process
+managment features in MPI implementations, \fI\%mpi4py.futures\fP supports an
+alternative usage pattern where Python code (either from scripts, modules, or
+zip files) is run under command line control of the \fI\%mpi4py.futures\fP
+package by passing \fB\-m mpi4py.futures\fP to the \fBpython\fP
+executable.  The \fBmpi4py.futures\fP invocation should be passed a \fIpyfile\fP path
+to a script (or a zipfile/directory containing a \fB__main__.py\fP file).
+Additionally, \fBmpi4py.futures\fP accepts \fB\-m \fP\fImod\fP to execute a module
+named \fImod\fP, \fB\-c \fP\fIcmd\fP to execute a command string \fIcmd\fP, or even
+\fB\-\fP to read commands from standard input (\fI\%sys.stdin\fP).
+Summarizing, \fBmpi4py.futures\fP can be invoked in the following ways:
+.INDENT 0.0
+.IP \(bu 2
+\fB$ mpiexec \-n \fP\fInumprocs\fP\fB python \-m mpi4py.futures \fP\fIpyfile\fP\fB [arg] ...\fP
+.IP \(bu 2
+\fB$ mpiexec \-n \fP\fInumprocs\fP\fB python \-m mpi4py.futures \-m \fP\fImod\fP\fB [arg] ...\fP
+.IP \(bu 2
+\fB$ mpiexec \-n \fP\fInumprocs\fP\fB python \-m mpi4py.futures \-c \fP\fIcmd\fP\fB [arg] ...\fP
+.IP \(bu 2
+\fB$ mpiexec \-n \fP\fInumprocs\fP\fB python \-m mpi4py.futures \- [arg] ...\fP
+.UNINDENT
+.sp
+Before starting the main script execution, \fI\%mpi4py.futures\fP splits
+\fBMPI.COMM_WORLD\fP in one master (the process with rank 0 in
+\fBMPI.COMM_WORLD\fP) and 16 workers and connect them through an MPI
+intercommunicator. Afterwards, the master process proceeds with the execution
+of the user script code, which eventually creates \fI\%MPIPoolExecutor\fP
+instances to submit tasks. Meanwhile, the worker processes follow a different
+execution path to serve the master.  Upon successful termination of the main
+script at the master, the entire MPI execution environment exists
+gracefully. In case of any unhandled exception in the main script, the master
+process calls \fBMPI.COMM_WORLD.Abort(1)\fP to prevent deadlocks and force
+termination of entire MPI execution environment.
+.sp
+\fBWARNING:\fP
+.INDENT 0.0
+.INDENT 3.5
+Running scripts under command line control of \fI\%mpi4py.futures\fP is quite
+similar to executing a single\-process application that spawn additional
+workers as required. However, there is a very important difference users
+should be aware of. All \fI\%MPIPoolExecutor\fP instances created at the
+master will share the pool of workers. Tasks submitted at the master from
+many different executors will be scheduled for execution in random order as
+soon as a worker is idle. Any executor can easily starve all the workers
+(e.g., by calling \fI\%MPIPoolExecutor.map()\fP with long iterables). If that
+ever happens, submissions from other executors will not be serviced until
+free workers are available.
+.UNINDENT
+.UNINDENT
+.sp
+\fBSEE ALSO:\fP
+.INDENT 0.0
+.INDENT 3.5
+.INDENT 0.0
+.TP
+.B \fI\%Command line\fP
+Documentation on Python command line interface.
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.SS Examples
+.sp
+The following \fBjulia.py\fP script computes the \fI\%Julia set\fP and dumps an
+image to disk in binary \fI\%PGM\fP format. The code starts by importing
+\fI\%MPIPoolExecutor\fP from the \fI\%mpi4py.futures\fP package. Next, some
+global constants and functions implement the computation of the Julia set. The
+computations are protected with the standard \fBif __name__ == \(aq__main__\(aq:
+...\fP idiom.  The image is computed by whole scanlines submitting all these
+tasks at once using the \fI\%map\fP method. The result
+iterator yields scanlines in\-order as the tasks complete. Finally, each
+scanline is dumped to disk.
+\fBjulia.py\fP.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+from mpi4py.futures import MPIPoolExecutor
+
+x0, x1, w = \-2.0, +2.0, 640*2
+y0, y1, h = \-1.5, +1.5, 480*2
+dx = (x1 \- x0) / w
+dy = (y1 \- y0) / h
+
+c = complex(0, 0.65)
+
+def julia(x, y):
+    z = complex(x, y)
+    n = 255
+    while abs(z) < 3 and n > 1:
+        z = z**2 + c
+        n \-= 1
+    return n
+
+def julia_line(k):
+    line = bytearray(w)
+    y = y1 \- k * dy
+    for j in range(w):
+        x = x0 + j * dx
+        line[j] = julia(x, y)
+    return line
+
+if __name__ == \(aq__main__\(aq:
+
+    with MPIPoolExecutor() as executor:
+        image = executor.map(julia_line, range(h))
+        with open(\(aqjulia.pgm\(aq, \(aqwb\(aq) as f:
+            f.write(b\(aqP5 %d %d %d\en\(aq % (w, h, 255))
+            for line in image:
+                f.write(line)
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+The recommended way to execute the script is using the \fBmpiexec\fP
+command specifying one MPI process and (optional but recommended) the desired
+MPI universe size [1]\&.
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+$ mpiexec \-n 1 \-usize 17 python julia.py
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+The \fBmpiexec\fP command launches a single MPI process (the master)
+running the Python interpreter and executing the main script. When required,
+\fI\%mpi4py.futures\fP spawns 16 additional MPI processes (the children) to
+dynamically allocate the pool of workers. The master submits tasks to the
+children and waits for the results. The children receive incoming tasks,
+execute them, and send back the results to the master.
+.sp
+Alternatively, users may decide to execute the script in a more traditional
+way, that is, all the MPI process are started at once. The user script is run
+under command line control of \fI\%mpi4py.futures\fP passing the \fI\%\-m\fP flag to the \fBpython\fP executable.
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+$ mpiexec \-n 17 python \-m mpi4py.futures julia.py
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+As explained previously, the 17 processes are partitioned in one master and 16
+workers. The master process executes the main script while the workers execute
+the tasks submitted from the master.
+.IP [1] 5
+This \fBmpiexec\fP invocation example using the \fB\-usize\fP flag
+(alternatively, setting the \fBMPIEXEC_UNIVERSE_SIZE\fP environment
+variable) assumes the backend MPI implementation is an MPICH derivative
+using the Hydra process manager. In the Open MPI implementation, the MPI
+universe size can be specified by setting the \fBOMPI_UNIVERSE_SIZE\fP
+environment variable to a positive integer.  Check the documentation of your
+actual MPI implementation and/or batch system for the ways to specify the
+desired MPI universe size.
+.SH MPI4PY.RUN
+.sp
+New in version 2.1.0.
+
+.sp
+At import time, \fBmpi4py\fP initializes the MPI execution environment calling
+\fBMPI_Init_thread()\fP and installs an exit hook to automatically call
+\fBMPI_Finalize()\fP just before the Python process terminates. Additionally,
+\fBmpi4py\fP overrides the default \fBMPI.ERRORS_ARE_FATAL\fP error handler
+in favor of \fBMPI.ERRORS_RETURN\fP, which allows translating MPI errors in
+Python exceptions. These departures from standard MPI behavior may be
+controversial, but are quite convenient within the highly dynamic Python
+programming environment. Third\-party code using \fBmpi4py\fP can just \fBfrom
+mpi4py import MPI\fP and perform MPI calls without the tedious
+initialization/finalization handling.  MPI errors, once translated
+automatically to Python exceptions, can be dealt with the common
+\fI\%try\fP\&...\fI\%except\fP\&...\fI\%finally\fP clauses; unhandled
+MPI exceptions will print a traceback which helps in locating problems in
+source code.
+.sp
+Unfortunately, the interplay of automatic MPI finalization and unhandled
+exceptions may lead to deadlocks. In unattended runs, these deadlocks will
+drain the battery of your laptop, or burn precious allocation hours in your
+supercomputing facility.
+.sp
+Consider the following snippet of Python code. Assume this code is stored in a
+standard Python script file and run with \fBmpiexec\fP in two or more
+processes.
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+from mpi4py import MPI
+assert MPI.COMM_WORLD.Get_size() > 1
+rank = MPI.COMM_WORLD.Get_rank()
+if rank == 0:
+    1/0
+    MPI.COMM_WORLD.send(None, dest=1, tag=42)
+elif rank == 1:
+    MPI.COMM_WORLD.recv(source=0, tag=42)
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+Process 0 raises \fI\%ZeroDivisionError\fP exception before performing a send
+call to process 1. As the exception is not handled, the Python interpreter
+running in process 0 will proceed to exit with non\-zero status. However, as
+\fBmpi4py\fP installed a finalizer hook to call \fBMPI_Finalize()\fP before
+exit, process 0 will block waiting for other processes to also enter the
+\fBMPI_Finalize()\fP call. Meanwhile, process 1 will block waiting for a
+message to arrive from process 0, thus never reaching to
+\fBMPI_Finalize()\fP\&. The whole MPI execution environment is irremediably in
+a deadlock state.
+.sp
+To alleviate this issue, \fBmpi4py\fP offers a simple, alternative command
+line execution mechanism based on using the \fI\%\-m\fP
+flag and implemented with the \fI\%runpy\fP module. To use this features, Python
+code should be run passing \fB\-m mpi4py\fP in the command line invoking the
+Python interpreter. In case of unhandled exceptions, the finalizer hook will
+call \fBMPI_Abort()\fP on the \fBMPI_COMM_WORLD\fP communicator, thus
+effectively aborting the MPI execution environment.
+.sp
+\fBWARNING:\fP
+.INDENT 0.0
+.INDENT 3.5
+When a process is forced to abort, resources (e.g. open files) are not
+cleaned\-up and any registered finalizers (either with the \fI\%atexit\fP
+module, the Python C/API function \fI\%Py_AtExit()\fP, or even the C
+standard library function \fBatexit()\fP) will not be executed. Thus,
+aborting execution is an extremely impolite way of ensuring process
+termination. However, MPI provides no other mechanism to recover from a
+deadlock state.
+.UNINDENT
+.UNINDENT
+.SS Interface options
+.sp
+The use of \fB\-m mpi4py\fP to execute Python code on the command line resembles
+that of the Python interpreter.
+.INDENT 0.0
+.IP \(bu 2
+\fBmpiexec \-n \fP\fInumprocs\fP\fB python \-m mpi4py \fP\fIpyfile\fP\fB [arg] ...\fP
+.IP \(bu 2
+\fBmpiexec \-n \fP\fInumprocs\fP\fB python \-m mpi4py \-m \fP\fImod\fP\fB [arg] ...\fP
+.IP \(bu 2
+\fBmpiexec \-n \fP\fInumprocs\fP\fB python \-m mpi4py \-c \fP\fIcmd\fP\fB [arg] ...\fP
+.IP \(bu 2
+\fBmpiexec \-n \fP\fInumprocs\fP\fB python \-m mpi4py \- [arg] ...\fP
+.UNINDENT
+.INDENT 0.0
+.TP
+.B <pyfile>
+Execute the Python code contained in \fIpyfile\fP, which must be a filesystem
+path referring to either a Python file, a directory containing a
+\fB__main__.py\fP file, or a zipfile containing a \fB__main__.py\fP
+file.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-m <mod>
+Search \fI\%sys.path\fP for the named module \fImod\fP and execute its contents.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-c <cmd>
+Execute the Python code in the \fIcmd\fP string command.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-
+Read commands from standard input (\fI\%sys.stdin\fP).
+.UNINDENT
+.sp
+\fBSEE ALSO:\fP
+.INDENT 0.0
+.INDENT 3.5
+.INDENT 0.0
+.TP
+.B \fI\%Command line\fP
+Documentation on Python command line interface.
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.SH CITATION
+.sp
+If MPI for Python been significant to a project that leads to an
+academic publication, please acknowledge that fact by citing the
+project.
+.INDENT 0.0
+.IP \(bu 2
+L. Dalcin, P. Kler, R. Paz, and A. Cosimo,
+\fIParallel Distributed Computing using Python\fP,
+Advances in Water Resources, 34(9):1124\-1139, 2011.
+\fI\%http://dx.doi.org/10.1016/j.advwatres.2011.04.013\fP
+.IP \(bu 2
+L. Dalcin, R. Paz, M. Storti, and J. D\(aqElia,
+\fIMPI for Python: performance improvements and MPI\-2 extensions\fP,
+Journal of Parallel and Distributed Computing, 68(5):655\-662, 2008.
+\fI\%http://dx.doi.org/10.1016/j.jpdc.2007.09.005\fP
+.IP \(bu 2
+L. Dalcin, R. Paz, and M. Storti,
+\fIMPI for Python\fP,
+Journal of Parallel and Distributed Computing, 65(9):1108\-1115, 2005.
+\fI\%http://dx.doi.org/10.1016/j.jpdc.2005.03.010\fP
+.UNINDENT
+.SH INSTALLATION
+.SS Requirements
+.sp
+You need to have the following software properly installed in order to
+build \fIMPI for Python\fP:
+.INDENT 0.0
+.IP \(bu 2
+A working MPI implementation, preferably supporting MPI\-3 and built
+with shared/dynamic libraries.
+.sp
+\fBNOTE:\fP
+.INDENT 2.0
+.INDENT 3.5
+If you want to build some MPI implementation from sources,
+check the instructions at building\-mpi in the appendix.
+.UNINDENT
+.UNINDENT
+.IP \(bu 2
+Python 2.7, 3.3 or above.
+.sp
+\fBNOTE:\fP
+.INDENT 2.0
+.INDENT 3.5
+Some MPI\-1 implementations \fBdo require\fP the actual
+command line arguments to be passed in \fBMPI_Init()\fP\&. In
+this case, you will need to use a rebuilt, MPI\-enabled, Python
+interpreter executable. \fIMPI for Python\fP has some support for
+alleviating you from this task. Check the instructions at
+python\-mpi in the appendix.
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.SS Using \fBpip\fP or \fBeasy_install\fP
+.sp
+If you already have a working MPI (either if you installed it from
+sources or by using a pre\-built package from your favourite GNU/Linux
+distribution) and the \fBmpicc\fP compiler wrapper is on your
+search path, you can use \fBpip\fP:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+$ [sudo] pip install mpi4py
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+or alternatively \fIsetuptools\fP \fBeasy_install\fP (deprecated):
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+$ [sudo] easy_install mpi4py
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+\fBNOTE:\fP
+.INDENT 0.0
+.INDENT 3.5
+If the \fBmpicc\fP compiler wrapper is not on your
+search path (or if it has a different name) you can use
+\fBenv\fP to pass the environment variable \fBMPICC\fP
+providing the full path to the MPI compiler wrapper executable:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+$ [sudo] env MPICC=/path/to/mpicc pip install mpi4py
+
+$ [sudo] env MPICC=/path/to/mpicc easy_install mpi4py
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.SS Using \fBdistutils\fP
+.sp
+The \fIMPI for Python\fP package is available for download at the project
+website generously hosted by Bitbucket. You can use \fBcurl\fP
+or \fBwget\fP to get a release tarball.
+.INDENT 0.0
+.IP \(bu 2
+Using \fBcurl\fP:
+.INDENT 2.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+$ curl \-O https://bitbucket.org/mpi4py/mpi4py/downloads/mpi4py\-X.Y.tar.gz
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.IP \(bu 2
+Using \fBwget\fP:
+.INDENT 2.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+$ wget https://bitbucket.org/mpi4py/mpi4py/downloads/mpi4py\-X.Y.tar.gz
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.sp
+After unpacking the release tarball:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+$ tar \-zxf mpi4py\-X.Y.tar.gz
+$ cd mpi4py\-X.Y
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+the package is ready for building.
+.sp
+\fIMPI for Python\fP uses a standard distutils\-based build system. However,
+some distutils commands (like \fIbuild\fP) have additional options:
+.INDENT 0.0
+.TP
+.B \-\-mpicc=
+Lets you specify a special location or name for the
+\fBmpicc\fP compiler wrapper.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-\-mpi=
+Lets you pass a section with MPI configuration within a special
+configuration file.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-\-configure
+Runs exhaustive tests for checking about missing MPI types,
+constants, and functions. This option should be passed in order to
+build \fIMPI for Python\fP against old MPI\-1 or MPI\-2 implementations,
+possibly providing a subset of MPI\-3.
+.UNINDENT
+.sp
+If you use a MPI implementation providing a \fBmpicc\fP compiler
+wrapper (e.g., MPICH, Open MPI), it will be used for compilation and
+linking. This is the preferred and easiest way of building \fIMPI for
+Python\fP\&.
+.sp
+If \fBmpicc\fP is located somewhere in your search path, simply
+run the \fIbuild\fP command:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+$ python setup.py build
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+If \fBmpicc\fP is not in your search path or the compiler wrapper
+has a different name, you can run the \fIbuild\fP command specifying its
+location:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+$ python setup.py build \-\-mpicc=/where/you/have/mpicc
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+Alternatively, you can provide all the relevant information about your
+MPI implementation by editing the file called \fBmpi.cfg\fP\&. You can
+use the default section \fB[mpi]\fP or add a new, custom section, for
+example \fB[other_mpi]\fP (see the examples provided in the
+\fBmpi.cfg\fP file as a starting point to write your own section):
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+[mpi]
+
+include_dirs         = /usr/local/mpi/include
+libraries            = mpi
+library_dirs         = /usr/local/mpi/lib
+runtime_library_dirs = /usr/local/mpi/lib
+
+[other_mpi]
+
+include_dirs         = /opt/mpi/include ...
+libraries            = mpi ...
+library_dirs         = /opt/mpi/lib ...
+runtime_library_dirs = /op/mpi/lib ...
+
+\&...
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+and then run the \fIbuild\fP command, perhaps specifying you custom
+configuration section:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+$ python setup.py build \-\-mpi=other_mpi
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+After building, the package is ready for install.
+.sp
+If you have root privileges (either by log\-in as the root user of by
+using \fBsudo\fP) and you want to install \fIMPI for Python\fP in
+your system for all users, just do:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+$ python setup.py install
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+The previous steps will install the \fBmpi4py\fP package at standard
+location \fB\fIprefix\fP\fP\fB/lib/python\fP\fIX\fP\fB\&.\fP\fIX\fP\fB/site\-packages\fP\&.
+.sp
+If you do not have root privileges or you want to install \fIMPI for
+Python\fP for your private use, just do:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+$ python setup.py install \-\-user
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Testing
+.sp
+To quickly test the installation:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+$ mpiexec \-n 5 python \-m mpi4py.bench helloworld
+Hello, World! I am process 0 of 5 on localhost.
+Hello, World! I am process 1 of 5 on localhost.
+Hello, World! I am process 2 of 5 on localhost.
+Hello, World! I am process 3 of 5 on localhost.
+Hello, World! I am process 4 of 5 on localhost.
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+If you installed from source, issuing at the command line:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+$ mpiexec \-n 5 python demo/helloworld.py
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+or (in the case of ancient MPI\-1 implementations):
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+$ mpirun \-np 5 python \(gapwd\(ga/demo/helloworld.py
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+will launch a five\-process run of the Python interpreter and run the
+test script \fBdemo/helloworld.py\fP from the source distribution.
+.sp
+You can also run all the \fIunittest\fP scripts:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+$ mpiexec \-n 5 python test/runtests.py
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+or, if you have \fI\%nose\fP unit testing framework installed:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+$ mpiexec \-n 5 nosetests \-w test
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+or, if you have \fI\%py.test\fP unit testing framework installed:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+$ mpiexec \-n 5 py.test test/
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SH APPENDIX
+.SS MPI\-enabled Python interpreter
+.INDENT 0.0
+.INDENT 3.5
+.sp
+\fBWARNING:\fP
+.INDENT 0.0
+.INDENT 3.5
+These days it is no longer required to use the MPI\-enabled Python
+interpreter in most cases, and, therefore, is not built by
+default anymore because it is too difficult to reliably build a
+Python interpreter across different distributions.  If you know
+that you still \fBreally\fP need it, see below on how to use the
+\fIbuild_exe\fP and \fIinstall_exe\fP commands.
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.sp
+Some MPI\-1 implementations (notably, MPICH 1) \fBdo require\fP the
+actual command line arguments to be passed at the time
+\fBMPI_Init()\fP is called. In this case, you will need to use a
+re\-built, MPI\-enabled, Python interpreter binary executable. A basic
+implementation (targeting Python 2.X) of what is required is shown
+below:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+#include <Python.h>
+#include <mpi.h>
+
+int main(int argc, char *argv[])
+{
+   int status, flag;
+   MPI_Init(&argc, &argv);
+   status = Py_Main(argc, argv);
+   MPI_Finalized(&flag);
+   if (!flag) MPI_Finalize();
+   return status;
+}
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+The source code above is straightforward; compiling it should also
+be. However, the linking step is more tricky: special flags have to be
+passed to the linker depending on your platform. In order to alleviate
+you for such low\-level details, \fIMPI for Python\fP provides some
+pure\-distutils based support to build and install an MPI\-enabled
+Python interpreter executable:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+$ cd mpi4py\-X.X.X
+$ python setup.py build_exe [\-\-mpi=<name>|\-\-mpicc=/path/to/mpicc]
+$ [sudo] python setup.py install_exe [\-\-install\-dir=$HOME/bin]
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+After the above steps you should have the MPI\-enabled interpreter
+installed as \fB\fIprefix\fP\fP\fB/bin/python\fP\fIX\fP\fB\&.\fP\fIX\fP\fB\-mpi\fP (or
+\fB$HOME/bin/python\fP\fIX\fP\fB\&.\fP\fIX\fP\fB\-mpi\fP). Assuming that
+\fB\fIprefix\fP\fP\fB/bin\fP (or \fB$HOME/bin\fP) is listed on your
+\fBPATH\fP, you should be able to enter your MPI\-enabled Python
+interactively, for example:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+$ python2.7\-mpi
+Python 2.7.8 (default, Nov 10 2014, 08:19:18)
+[GCC 4.9.2 20141101 (Red Hat 4.9.2\-1)] on linux2
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import sys
+>>> sys.executable
+\(aq/usr/bin/python2.7\-mpi\(aq
+>>>
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Building MPI from sources
+.sp
+In the list below you have some executive instructions for building
+some of the open\-source MPI implementations out there with support for
+shared/dynamic libraries on POSIX environments.
+.INDENT 0.0
+.IP \(bu 2
+\fIMPICH\fP
+.INDENT 2.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+$ tar \-zxf mpich\-X.X.X.tar.gz
+$ cd mpich\-X.X.X
+$ ./configure \-\-enable\-shared \-\-prefix=/usr/local/mpich
+$ make
+$ make install
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.IP \(bu 2
+\fIOpen MPI\fP
+.INDENT 2.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+$ tar \-zxf openmpi\-X.X.X tar.gz
+$ cd openmpi\-X.X.X
+$ ./configure \-\-prefix=/usr/local/openmpi
+$ make all
+$ make install
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.IP \(bu 2
+\fIMPICH 1\fP
+.INDENT 2.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+$ tar \-zxf mpich\-X.X.X.tar.gz
+$ cd mpich\-X.X.X
+$ ./configure \-\-enable\-sharedlib \-\-prefix=/usr/local/mpich1
+$ make
+$ make install
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.sp
+Perhaps you will need to set the \fBLD_LIBRARY_PATH\fP
+environment variable (using \fBexport\fP, \fBsetenv\fP or
+what applies to your system) pointing to the directory containing the
+MPI libraries . In case of getting runtime linking errors when running
+MPI programs, the following lines can be added to the user login shell
+script (\fB\&.profile\fP, \fB\&.bashrc\fP, etc.).
+.INDENT 0.0
+.IP \(bu 2
+\fIMPICH\fP
+.INDENT 2.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+MPI_DIR=/usr/local/mpich
+export LD_LIBRARY_PATH=$MPI_DIR/lib:$LD_LIBRARY_PATH
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.IP \(bu 2
+\fIOpen MPI\fP
+.INDENT 2.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+MPI_DIR=/usr/local/openmpi
+export LD_LIBRARY_PATH=$MPI_DIR/lib:$LD_LIBRARY_PATH
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.IP \(bu 2
+\fIMPICH 1\fP
+.INDENT 2.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+MPI_DIR=/usr/local/mpich1
+export LD_LIBRARY_PATH=$MPI_DIR/lib/shared:$LD_LIBRARY_PATH:
+export MPICH_USE_SHLIB=yes
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+\fBWARNING:\fP
+.INDENT 2.0
+.INDENT 3.5
+MPICH 1 support for dynamic libraries is not completely
+transparent. Users should set the environment variable
+\fBMPICH_USE_SHLIB\fP to \fByes\fP in order to avoid link
+problems when using the \fBmpicc\fP compiler wrapper.
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.SH AUTHOR
+Lisandro Dalcin
+.SH COPYRIGHT
+2017, Lisandro Dalcin
+.\" Generated by docutils manpage writer.
+.
