@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Run an agent."""
+"""运行一个智能体."""
 
 from __future__ import absolute_import
 from __future__ import division
@@ -43,7 +43,7 @@ point_flag.DEFINE_point("rgb_screen_size", None,
                         "Resolution for rendered screen.")
 point_flag.DEFINE_point("rgb_minimap_size", None,
                         "Resolution for rendered minimap.")
-flags.DEFINE_enum("action_space", None, sc2_env.ActionSpace._member_names_,  # pylint: disable=protected-access
+flags.DEFINE_enum("action_space", None, sc2_env.ActionSpace._member_names_,  # pylint:禁用=保护访问
                   "Which action space to use. Needed if you take both feature "
                   "and rgb observations.")
 flags.DEFINE_bool("use_feature_units", False,
@@ -59,15 +59,15 @@ flags.DEFINE_string("agent", "pysc2.agents.random_agent.RandomAgent",
                     "Which agent to run, as a python path to an Agent class.")
 flags.DEFINE_string("agent_name", None,
                     "Name of the agent in replays. Defaults to the class name.")
-flags.DEFINE_enum("agent_race", "random", sc2_env.Race._member_names_,  # pylint: disable=protected-access
+flags.DEFINE_enum("agent_race", "random", sc2_env.Race._member_names_,  # pylint:禁用=保护访问
                   "Agent 1's race.")
 
 flags.DEFINE_string("agent2", "Bot", "Second agent, either Bot or agent class.")
 flags.DEFINE_string("agent2_name", None,
                     "Name of the agent in replays. Defaults to the class name.")
-flags.DEFINE_enum("agent2_race", "random", sc2_env.Race._member_names_,  # pylint: disable=protected-access
+flags.DEFINE_enum("agent2_race", "random", sc2_env.Race._member_names_,  # pylint:禁用=保护访问
                   "Agent 2's race.")
-flags.DEFINE_enum("difficulty", "very_easy", sc2_env.Difficulty._member_names_,  # pylint: disable=protected-access
+flags.DEFINE_enum("difficulty", "very_easy", sc2_env.Difficulty._member_names_,  # pylint:禁用=保护访问
                   "If agent2 is a built-in Bot, it's strength.")
 
 flags.DEFINE_bool("profile", False, "Whether to turn on code profiling.")
@@ -81,7 +81,7 @@ flags.mark_flag_as_required("map")
 
 
 def run_thread(agent_classes, players, map_name, visualize):
-  """Run one thread worth of the environment with agents."""
+  """使用智能体运行环境中的一个线程."""
   with sc2_env.SC2Env(
       map_name=map_name,
       players=players,
@@ -104,7 +104,7 @@ def run_thread(agent_classes, players, map_name, visualize):
 
 
 def main(unused_argv):
-  """Run an agent."""
+  """运行一个智能体."""
   stopwatch.sw.enabled = FLAGS.profile or FLAGS.trace
   stopwatch.sw.trace = FLAGS.trace
 

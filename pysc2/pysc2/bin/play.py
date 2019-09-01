@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Run SC2 to play a game or a replay."""
+"""运行SC2进行人工游戏或重播."""
 
 from __future__ import absolute_import
 from __future__ import division
@@ -82,7 +82,7 @@ flags.DEFINE_string("replay", None, "Name of a replay to show.")
 
 
 def main(unused_argv):
-  """Run SC2 to play a game or a replay."""
+  """运行SC2进行人工游戏或重播."""
   stopwatch.sw.enabled = FLAGS.profile or FLAGS.trace
   stopwatch.sw.trace = FLAGS.trace
 
@@ -93,7 +93,7 @@ def main(unused_argv):
     sys.exit("Replay must end in .SC2Replay.")
 
   if FLAGS.realtime and FLAGS.replay:
-    # TODO(tewalds): Support realtime in replays once the game supports it.
+    # TODO(tewalds):支持实时回放，需要游戏版本支持.
     sys.exit("realtime isn't possible for replays yet.")
 
   if FLAGS.render and (FLAGS.realtime or FLAGS.full_screen):
@@ -206,11 +206,11 @@ def get_replay_version(replay_data):
   return run_configs_lib.Version(
       game_version=".".join(metadata["GameVersion"].split(".")[:-1]),
       build_version=int(metadata["BaseBuild"][4:]),
-      data_version=metadata.get("DataVersion"),  # Only in replays version 4.1+.
+      data_version=metadata.get("DataVersion"),  # 只有在重播版本4.1+。.
       binary=None)
 
 
-def entry_point():  # Needed so setup.py scripts work.
+def entry_point():  # 需要这样setup.py脚本工作。
   app.run(main)
 
 

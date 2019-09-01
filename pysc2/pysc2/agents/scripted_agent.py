@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Scripted agents."""
+"""脚本化的智能体."""
 
 from __future__ import absolute_import
 from __future__ import division
@@ -31,13 +31,13 @@ FUNCTIONS = actions.FUNCTIONS
 
 
 def _xy_locs(mask):
-  """Mask should be a set of bools from comparison with a feature layer."""
+  """遮罩应该是一组通过与特征层比较得到的布尔值."""
   y, x = mask.nonzero()
   return list(zip(x, y))
 
 
 class MoveToBeacon(base_agent.BaseAgent):
-  """An agent specifically for solving the MoveToBeacon map."""
+  """专门用于解决MoveToBeacon映射的智能体."""
 
   def step(self, obs):
     super(MoveToBeacon, self).step(obs)
@@ -53,7 +53,7 @@ class MoveToBeacon(base_agent.BaseAgent):
 
 
 class CollectMineralShards(base_agent.BaseAgent):
-  """An agent specifically for solving the CollectMineralShards map."""
+  """一种专门用于解决集合矿片地图的智能体."""
 
   def step(self, obs):
     super(CollectMineralShards, self).step(obs)
@@ -72,12 +72,12 @@ class CollectMineralShards(base_agent.BaseAgent):
 
 
 class CollectMineralShardsFeatureUnits(base_agent.BaseAgent):
-  """An agent for solving the CollectMineralShards map with feature units.
+  """一种解决具有特征单元的集矿碎片图的智能体程序.
 
-  Controls the two marines independently:
-  - select marine
-  - move to nearest mineral shard that wasn't the previous target
-  - swap marine and repeat
+  独立控制两名队员:
+  -选择海洋
+  -移动到最近的矿物碎片，这不是以前的目标
+  -交换队员，重复
   """
 
   def setup(self, obs_spec, action_spec):
@@ -101,26 +101,26 @@ class CollectMineralShardsFeatureUnits(base_agent.BaseAgent):
     marine_xy = [marine_unit.x, marine_unit.y]
 
     if not marine_unit.is_selected:
-      # Nothing selected or the wrong marine is selected.
+      # 没有选择任何内容或选择了错误的marine.
       self._marine_selected = True
       return FUNCTIONS.select_point("select", marine_xy)
 
     if FUNCTIONS.Move_screen.id in obs.observation.available_actions:
-      # Find and move to the nearest mineral.
+      # 找到并移动到最近的矿物.
       minerals = [[unit.x, unit.y] for unit in obs.observation.feature_units
                   if unit.alliance == _PLAYER_NEUTRAL]
 
       if self._previous_mineral_xy in minerals:
-        # Don't go for the same mineral shard as other marine.
+        # 不要像其他工兵一样去寻找相同的矿物碎片
         minerals.remove(self._previous_mineral_xy)
 
       if minerals:
-        # Find the closest.
+        # 找到最接近的.
         distances = numpy.linalg.norm(
             numpy.array(minerals) - numpy.array(marine_xy), axis=1)
         closest_mineral_xy = minerals[numpy.argmin(distances)]
 
-        # Swap to the other marine.
+        # 换到另一个队员.
         self._marine_selected = False
         self._previous_mineral_xy = closest_mineral_xy
         return FUNCTIONS.Move_screen("now", closest_mineral_xy)
@@ -129,7 +129,7 @@ class CollectMineralShardsFeatureUnits(base_agent.BaseAgent):
 
 
 class DefeatRoaches(base_agent.BaseAgent):
-  """An agent specifically for solving the DefeatRoaches map."""
+  """专门用于解决DefeatRoaches地图的智能体."""
 
   def step(self, obs):
     super(DefeatRoaches, self).step(obs)
@@ -139,7 +139,7 @@ class DefeatRoaches(base_agent.BaseAgent):
       if not roaches:
         return FUNCTIONS.no_op()
 
-      # Find the roach with max y coord.
+      # 找到最大y坐标.
       target = roaches[numpy.argmax(numpy.array(roaches)[:, 1])]
       return FUNCTIONS.Attack_screen("now", target)
 

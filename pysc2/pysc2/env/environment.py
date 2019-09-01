@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Python RL Environment API."""
+"""Python 强化学习环境API."""
 
 from __future__ import absolute_import
 from __future__ import division
@@ -26,23 +26,23 @@ import six
 
 class TimeStep(collections.namedtuple(
     'TimeStep', ['step_type', 'reward', 'discount', 'observation'])):
-  """Returned with every call to `step` and `reset` on an environment.
+  """每次调用环境上的“step”和“reset”时返回.
 
-  A `TimeStep` contains the data emitted by an environment at each step of
-  interaction. A `TimeStep` holds a `step_type`, an `observation`, and an
-  associated `reward` and `discount`.
+  “时间步长”包含环境在…的每一步发出的数据
+  交互。“TimeStep”包含“step_type”、“observation”和“an”
+  相关的“奖励”和“折扣”.
 
-  The first `TimeStep` in a sequence will have `StepType.FIRST`. The final
-  `TimeStep` will have `StepType.LAST`. All other `TimeStep`s in a sequence will
-  have `StepType.MID.
+  序列中的第一个“TimeStep”将具有“StepType.FIRST”。最后一个
+  ' TimeStep '将包含' StepType.LAST '。所有其他的时间步都是按顺序排列的
+  “StepType.MID.
 
   Attributes:
-    step_type: A `StepType` enum value.
-    reward: A scalar, or 0 if `step_type` is `StepType.FIRST`, i.e. at the
-      start of a sequence.
-    discount: A discount value in the range `[0, 1]`, or 0 if `step_type`
-      is `StepType.FIRST`, i.e. at the start of a sequence.
-    observation: A NumPy array, or a dict, list or tuple of arrays.
+    step_type: 一个“StepType”枚举值.
+    reward: 标量，如果' step_type '是' StepType '，则为0。’，即在
+    序列的开始
+    discount: 折扣值的范围为'[0,1]'，如果' step_type '则为0
+    是“StepType。FIRST '，即在序列的开始。
+    观察:一个数字数组，或数组的dict、列表或元组.
   """
   __slots__ = ()
 
@@ -57,81 +57,80 @@ class TimeStep(collections.namedtuple(
 
 
 class StepType(enum.IntEnum):
-  """Defines the status of a `TimeStep` within a sequence."""
-  # Denotes the first `TimeStep` in a sequence.
+  """定义序列中“时间步长”的状态."""
+  # 表示序列中的第一个“时间步长”.
   FIRST = 0
-  # Denotes any `TimeStep` in a sequence that is not FIRST or LAST.
+  # 表示序列中不是第一个或最后一个的任何“时间步长”.
   MID = 1
-  # Denotes the last `TimeStep` in a sequence.
+  # 表示序列中的最后一个“时间步长”.
   LAST = 2
 
 
 @six.add_metaclass(abc.ABCMeta)
-class Base(object):  # pytype: disable=ignored-abstractmethod
-  """Abstract base class for Python RL environments."""
+class Base(object):  # pytype:禁用= ignored-abstractmethod
+  """Python RL环境的抽象基类."""
 
   @abc.abstractmethod
   def reset(self):
-    """Starts a new sequence and returns the first `TimeStep` of this sequence.
+    """启动一个新序列并返回该序列的第一个“时间步长”.
 
     Returns:
-      A `TimeStep` namedtuple containing:
-        step_type: A `StepType` of `FIRST`.
-        reward: Zero.
-        discount: Zero.
-        observation: A NumPy array, or a dict, list or tuple of arrays
-          corresponding to `observation_spec()`.
+      包含一个名为“TimeStep”的元组:
+        step_type:' FIRST '的' StepType '.
+        reward: 0.
+        discount: 0.
+        observation: 一个数字数组，或数组的dict、列表或元组
+        对应于“observation_spec ()“.
     """
 
   @abc.abstractmethod
   def step(self, action):
-    """Updates the environment according to the action and returns a `TimeStep`.
+    """根据操作更新环境并返回一个“TimeStep”.
 
-    If the environment returned a `TimeStep` with `StepType.LAST` at the
-    previous step, this call to `step` will start a new sequence and `action`
-    will be ignored.
+    如果环境返回一个带有“StepType”的“TimeStep”。最后的
+    在前面的步骤中，对“step”的调用将启动一个新的序列和“action”
+    将被忽略。
 
-    This method will also start a new sequence if called after the environment
-    has been constructed and `restart` has not been called. Again, in this case
-    `action` will be ignored.
+    如果在环境之后调用，此方法还将启动一个新序列
+    已构造，尚未调用“重新启动”。在这种情况下
+    “行动”将被忽略。
 
     Args:
-      action: A NumPy array, or a dict, list or tuple of arrays corresponding to
-        `action_spec()`.
+      action: 与之对应的数字数组或dict、列表或数组元组
+      “action_spec ()”。
 
     Returns:
-      A `TimeStep` namedtuple containing:
-        step_type: A `StepType` value.
-        reward: Reward at this timestep.
-        discount: A discount in the range [0, 1].
-        observation: A NumPy array, or a dict, list or tuple of arrays
-          corresponding to `observation_spec()`.
+      包含一个名为“TimeStep”的元组:
+        step_type: “StepType”值.
+        reward: 在这个时候奖励.
+        discount: [0,1]范围内的折扣.
+        observation: 一个数字数组，或数组的dict、列表或元组
+        对应于“observation_spec ()”.
     """
 
   @abc.abstractmethod
   def observation_spec(self):
-    """Defines the observations provided by the environment.
+    """定义环境提供的观察结果。
 
     Returns:
-      A tuple of specs (one per agent), where each spec is a dict of shape
-        tuples.
+      规范的元组(每个代理一个)，其中每个规范都是形状的dict
+      元组。
     """
 
   @abc.abstractmethod
   def action_spec(self):
-    """Defines the actions that should be provided to `step`.
+    """定义应该提供给“step”的操作。
 
     Returns:
-      A tuple of specs (one per agent), where each spec is something that
-        defines the shape of the actions.
+      规范的元组(每个代理一个)，其中每个规范都是
+      定义动作的形状。
     """
 
   def close(self):
-    """Frees any resources used by the environment.
+    """释放环境使用的任何资源。
 
-    Implement this method for an environment backed by an external process.
-
-    This method be used directly
+    为外部流程支持的环境实现此方法。
+    这种方法可以直接使用
 
     ```python
     env = Env(...)
@@ -149,11 +148,11 @@ class Base(object):  # pytype: disable=ignored-abstractmethod
     pass
 
   def __enter__(self):
-    """Allows the environment to be used in a with-statement context."""
+    """允许环境在with-statement上下文中使用。"""
     return self
 
   def __exit__(self, unused_exception_type, unused_exc_value, unused_traceback):
-    """Allows the environment to be used in a with-statement context."""
+    """允许环境在with-statement上下文中使用。"""
     self.close()
 
   def __del__(self):

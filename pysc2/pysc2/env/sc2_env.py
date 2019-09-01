@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""A Starcraft II environment."""
+"""一个星际争霸2的环境。"""
 
 from __future__ import absolute_import
 from __future__ import division
@@ -57,7 +57,7 @@ class Race(enum.IntEnum):
 
 
 class Difficulty(enum.IntEnum):
-  """Bot difficulties."""
+  """机器人的困难。"""
   very_easy = sc_pb.VeryEasy
   easy = sc_pb.Easy
   medium = sc_pb.Medium
@@ -90,10 +90,10 @@ EPSILON = 1e-5
 
 
 class SC2Env(environment.Base):
-  """A Starcraft II environment.
+  """一个星际争霸2的环境。
 
-  The implementation details of the action and observation specs are in
-  lib/features.py
+  操作和观察规范的实现细节在其中
+  lib / features.py
   """
 
   def __init__(self,  # pylint: disable=invalid-name
@@ -120,66 +120,65 @@ class SC2Env(environment.Base):
                random_seed=None,
                disable_fog=False,
                ensure_available_actions=True):
-    """Create a SC2 Env.
-
-    You must pass a resolution that you want to play at. You can send either
-    feature layer resolution or rgb resolution or both. If you send both you
-    must also choose which to use as your action space. Regardless of which you
-    choose you must send both the screen and minimap resolutions.
-
-    For each of the 4 resolutions, either specify size or both width and
-    height. If you specify size then both width and height will take that value.
+    """创建一个SC2环境。
+    你必须通过一个你想玩的决议。你可以发送
+    特征层分辨率或rgb分辨率或两者兼而有之。如果你们两个都送的话
+    还必须选择使用哪个作为您的操作空间。不管你是谁
+    选择您必须同时发送屏幕和小地图分辨率。
+    对于这4种分辨率，要么指定大小，要么同时指定宽度和
+    高度。如果指定了size，那么width和height都将接受该值。
 
     Args:
-      _only_use_kwargs: Don't pass args, only kwargs.
-      map_name: Name of a SC2 map. Run bin/map_list to get the full list of
-          known maps. Alternatively, pass a Map instance. Take a look at the
-          docs in maps/README.md for more information on available maps.
-      players: A list of Agent and Bot instances that specify who will play.
-      agent_race: Deprecated. Use players instead.
-      bot_race: Deprecated. Use players instead.
-      difficulty: Deprecated. Use players instead.
-      screen_size_px: Deprecated. Use agent_interface_formats instead.
-      minimap_size_px: Deprecated. Use agent_interface_formats instead.
-      agent_interface_format: A sequence containing one AgentInterfaceFormat
-        per agent, matching the order of agents specified in the players list.
-        Or a single AgentInterfaceFormat to be used for all agents.
-      discount: Returned as part of the observation.
-      discount_zero_after_timeout: If True, the discount will be zero
-          after the `game_steps_per_episode` timeout.
-      visualize: Whether to pop up a window showing the camera and feature
-          layers. This won't work without access to a window manager.
-      step_mul: How many game steps per agent step (action/observation). None
-          means use the map default.
-      realtime: Whether to use realtime mode. In this mode the game simulation
-          automatically advances (at 22.4 gameloops per second) rather than
-          being stepped manually. The number of game loops advanced with each
-          call to step() won't necessarily match the step_mul specified. The
-          environment will attempt to honour step_mul, returning observations
-          with that spacing as closely as possible. Game loops will be skipped
-          if they cannot be retrieved and processed quickly enough.
-      save_replay_episodes: Save a replay after this many episodes. Default of 0
-          means don't save replays.
-      replay_dir: Directory to save replays. Required with save_replay_episodes.
-      replay_prefix: An optional prefix to use when saving replays.
-      game_steps_per_episode: Game steps per episode, independent of the
-          step_mul. 0 means no limit. None means use the map default.
-      score_index: -1 means use the win/loss reward, >=0 is the index into the
-          score_cumulative with 0 being the curriculum score. None means use
-          the map default.
-      score_multiplier: How much to multiply the score by. Useful for negating.
-      random_seed: Random number seed to use when initializing the game. This
-          lets you run repeatable games/tests.
-      disable_fog: Whether to disable fog of war.
-      ensure_available_actions: Whether to throw an exception when an
-          unavailable action is passed to step().
+      _only_use_kwargs: 不要传递args，只传递kwargs。
+      map_name: SC2映射的名称。运行bin/map_list以获得完整的列表
+        已知的地图。或者，传递一个Map实例。来看看
+        在地图/ README文档。更多关于可用地图的信息，md。
+      players: 指定玩家的智能体和机器人实例列表。
+      agent_race: 弃用。使用玩家代替。
+      bot_race: 弃用。使用玩家代替。
+      difficulty: 弃用。使用玩家代替。
+      screen_size_px: 弃用。使用agent_interface_formats代替。
+      minimap_size_px: 弃用。使用agent_interface_formats代替。
+      agent_interface_format: 包含一个代理接口格式的序列
+      每个代理，匹配球员列表中指定的代理的顺序。
+      或用于所有代理的单个AgentInterfaceFormat。
+      discount: 作为观察的一部分返回。
+      discount_zero_after_timeout: 如果返回为真，则折扣为零
+      在“game_steps_per_episode”超时之后。观察的一部分。
+      visualize:他必须弹出一个显示相机和功能的窗口
+      层。如果没有访问窗口管理器，这将无法工作。
+      step_mul: 每个智能体步骤(动作/观察)有多少个游戏步骤。没有一个
+      表示使用地图默认值。
+      realtime: 每个代理步骤(动作/观察)有多少个游戏步骤。是否使用实时模式。在此模式下进行游戏模拟
+        自动前进(以每秒22.4个游戏负载)而不是
+        被手动了。每个游戏循环的数量都在增加
+        调用step()不一定匹配指定的step_mul。的
+        环境将尝试尊重step_mul，返回观测值
+        用尽可能近的间隔。游戏循环将被跳过
+        如果它们不能足够快地检索和处理
+        表示使用地图默认值。
+      save_replay_episodes: 保存这许多集之后的重播。默认为0
+      意思是不要保存回放。
+      replay_dir: 保存重播的目录。与save_replay_episodes所需。
+      replay_prefix: 保存重播时使用的可选前缀。
+      game_steps_per_episode: 游戏步骤每集，独立的
+      step_mul。0表示没有极限。None表示使用map默认值。
+      score_index: -1表示使用赢/输奖励，>=0是指数进入
+      score_cumulative以0为课程分数。没有意味着使用
+      地图上违约。
+      score_multiplier: 分数乘以多少。用于否定。
+      random_seed: 初始化游戏时使用的随机数种子。这
+      让您运行可重复的游戏/测试。
+      disable_fog: 是否禁用战争迷雾。
+      ensure_available_actions:时是否抛出异常
+      不可用的操作被传递给step()。
 
     Raises:
-      ValueError: if the agent_race, bot_race or difficulty are invalid.
-      ValueError: if too many players are requested for a map.
-      ValueError: if the resolutions aren't specified correctly.
-      DeprecationWarning: if screen_size_px or minimap_size_px are sent.
-      DeprecationWarning: if agent_race, bot_race or difficulty are sent.
+      ValueError: 如果agent_race、bot_race或难度无效。
+      ValueError: 如果太多玩家需要地图。
+      ValueError: 如果太多，如果决议没有正确指定。玩家需要一张地图。
+      DeprecationWarning: 如果发送了screen_size_px或minimap_size_px。
+      DeprecationWarning: 如果发送了agent_race、bot_race或难度。
     """
     if _only_use_kwargs:
       raise ValueError("All arguments must be passed as keyword arguments.")
@@ -351,7 +350,7 @@ class SC2Env(environment.Base):
         want_rgb=interface.HasField("render"))]
     self._controllers = [p.controller for p in self._sc2_procs]
 
-    # Create the game.
+    # 创建游戏。
     create = sc_pb.RequestCreateGame(
         local_map=sc_pb.LocalMap(
             map_path=map_inst.path, map_data=map_inst.data(self._run_config)),
@@ -374,24 +373,24 @@ class SC2Env(environment.Base):
     self._controllers[0].join_game(join)
 
   def _launch_mp(self, map_inst, interfaces):
-    # Reserve a whole bunch of ports for the weird multiplayer implementation.
+    # 为奇怪的多人游戏实现保留一大堆端口。
     self._ports = portspicker.pick_unused_ports(self._num_agents * 2)
     logging.info("Ports used for multiplayer: %s", self._ports)
 
-    # Actually launch the game processes.
+    # 实际启动游戏进程。
     self._sc2_procs = [
         self._run_config.start(extra_ports=self._ports,
                                want_rgb=interface.HasField("render"))
         for interface in interfaces]
     self._controllers = [p.controller for p in self._sc2_procs]
 
-    # Save the maps so they can access it. Don't do it in parallel since SC2
-    # doesn't respect tmpdir on windows, which leads to a race condition:
+    # 保存地图，这样他们就可以访问它。从SC2开始就不要并行执行
+    #不尊重windows上的tmpdir，导致竞态条件:
     # https://github.com/Blizzard/s2client-proto/issues/102
     for c in self._controllers:
       c.save_map(map_inst.path, map_inst.data(self._run_config))
 
-    # Create the game. Set the first instance as the host.
+    # 创建游戏。将第一个实例设置为主机。
     create = sc_pb.RequestCreateGame(
         local_map=sc_pb.LocalMap(
             map_path=map_inst.path),
@@ -407,7 +406,7 @@ class SC2Env(environment.Base):
                                 difficulty=p.difficulty)
     self._controllers[0].create_game(create)
 
-    # Create the join requests.
+    # 创建连接请求。
     agent_players = (p for p in self._players if isinstance(p, Agent))
     join_reqs = []
     for agent_index, p in enumerate(agent_players):
@@ -424,8 +423,8 @@ class SC2Env(environment.Base):
       join.player_name = p.name
       join_reqs.append(join)
 
-    # Join the game. This must be run in parallel because Join is a blocking
-    # call to the game that waits until all clients have joined.
+    # 创建加入游戏。这必须并行运行，因为连接是阻塞连接请求的。
+    # 调用等待所有客户端都加入的游戏。
     self._parallel.run((c.join_game, join)
                        for c, join in zip(self._controllers, join_reqs))
 
@@ -434,11 +433,11 @@ class SC2Env(environment.Base):
     self._join_reqs = join_reqs
 
   def observation_spec(self):
-    """Look at Features for full specs."""
+    """查看完整规范的特性."""
     return tuple(f.observation_spec() for f in self._features)
 
   def action_spec(self):
-    """Look at Features for full specs."""
+    """查看FLook的功能，以获得完整的规格说明."""
     return tuple(f.action_spec() for f in self._features)
 
   def _restart(self):
@@ -452,7 +451,7 @@ class SC2Env(environment.Base):
 
   @sw.decorate
   def reset(self):
-    """Start a new episode."""
+    """开始新的一集."""
     self._episode_steps = 0
     if self._episode_count:
       # No need to restart for the first episode.
@@ -472,14 +471,14 @@ class SC2Env(environment.Base):
 
   @sw.decorate("step_env")
   def step(self, actions, step_mul=None):
-    """Apply actions, step the world forward, and return observations.
+    """应用行动，让世界前进，并回报观察。
 
     Args:
-      actions: A list of actions meeting the action spec, one per agent.
-      step_mul: If specified, use this rather than the environment's default.
+      actions: 符合操作规范的操作列表，每个智能体一个。
+      step_mul: 如果指定了，使用这个而不是环境的默认值。
 
     Returns:
-      A tuple of TimeStep namedtuples, one per agent.
+      TimeStep命名元组的元组，每个智能体一个。
     """
     if self._state == environment.StepType.LAST:
       return self.reset()
@@ -511,10 +510,10 @@ class SC2Env(environment.Base):
       if wait_time > 0.0:
         time.sleep(wait_time)
 
-      # Note that we use the targeted next_step_time here, not the actual
-      # time. This is so that we advance our view of the SC2 game clock in
-      # REALTIME_GAME_LOOP_SECONDS increments rather than it slipping with
-      # round trip latencies.
+      # 注意，这里使用的是目标next_step_time，而不是实际时间
+      #时间。这是为了让我们提前看到SC2的游戏时钟
+      # REALTIME_GAME_LOOP_SECONDS是递增的，而不是下滑
+      #往返延误。
       self._last_step_time = next_step_time
 
     return self._observe()
@@ -533,8 +532,8 @@ class SC2Env(environment.Base):
       while True:
         self._get_observations()
 
-        # Check that the game has advanced sufficiently.
-        # If it hasn't, wait for it to.
+        # 检查游戏是否有足够的进展。
+        # 如果还没有，那就等着它来吧。
         game_loop = self._agent_obs[0].game_loop[0]
         if game_loop < self._target_step:
           if not needed_to_wait:
@@ -546,31 +545,31 @@ class SC2Env(environment.Base):
 
           time.sleep(REALTIME_GAME_LOOP_SECONDS)
         else:
-          # We're beyond our target now.
+          # 我们现在超出了目标。
           if needed_to_wait:
             self._last_step_time = time.time()
             logging.info("...game loop is now %s. Continuing.", game_loop)
           break
 
-    # TODO(tewalds): How should we handle more than 2 agents and the case where
-    # the episode can end early for some agents?
+    #TODO(tewalds):我们应该如何处理两个以上的智能体以及在什么情况下
+    #对于某些特工来说，这一集会提前结束吗?
     outcome = [0] * self._num_agents
     discount = self._discount
     episode_complete = any(o.player_result for o in self._obs)
 
-    # In realtime, we don't receive player results reliably, yet we do
-    # sometimes hit 'ended' status. When that happens we terminate the
-    # episode.
-    # TODO(b/115466611): player_results should be returned in realtime mode
+    #在实时，我们不可靠地接收玩家的结果，但我们做到了
+    #有时点击“结束”状态。当这种情况发生时，我们终止
+    #集。
+    # TODO(b/115466611): player_results应该以实时模式返回
     if self._realtime and self._controllers[0].status == protocol.Status.ended:
       logging.info("Protocol status is ended. Episode is complete.")
       episode_complete = True
 
     if self._realtime and len(self._obs) > 1:
-      # Realtime doesn't seem to give us a player result when one player
-      # gets eliminated. Hence some temporary hackery (which can only work
-      # when we have both agents in this environment)...
-      # TODO(b/115466611): player_results should be returned in realtime mode
+      # Realtime似乎不会给我们一个玩家结果当一个玩家
+      #被消除。因此出现了一些临时的黑客攻击(只能起作用)
+      #当我们在这个环境中有两个代理时)…
+      # TODO(b/115466611): player_results应该以实时模式返回
       p1 = self._obs[0].observation.score.score_details
       p2 = self._obs[1].observation.score.score_details
       if p1.killed_value_structures > p2.total_value_structures - EPSILON:
@@ -593,10 +592,10 @@ class SC2Env(environment.Base):
           if result.player_id == player_id:
             outcome[i] = possible_results.get(result.result, 0)
 
-    if self._score_index >= 0:  # Game score, not win/loss reward.
+    if self._score_index >= 0:  # 游戏得分，而不是输赢奖励。
       cur_score = [o["score_cumulative"][self._score_index]
                    for o in self._agent_obs]
-      if self._episode_steps == 0:  # First reward is always 0.
+      if self._episode_steps == 0:  # 第一个奖励总是0。
         reward = [0] * self._num_agents
       else:
         reward = [cur - last for cur, last in zip(cur_score, self._last_score)]
@@ -640,7 +639,7 @@ class SC2Env(environment.Base):
         observation=o) for r, o in zip(reward, self._agent_obs))
 
   def send_chat_messages(self, messages):
-    """Useful for logging messages into the replay."""
+    """用于将消息记录到重播中。"""
     self._parallel.run(
         (c.chat, message) for c, message in zip(self._controllers, messages))
 
@@ -661,7 +660,7 @@ class SC2Env(environment.Base):
       self._renderer_human.close()
       self._renderer_human = None
 
-    # Don't use parallel since it might be broken by an exception.
+    # 不要使用parallel，因为它可能会被异常破坏。
     if hasattr(self, "_controllers") and self._controllers:
       for c in self._controllers:
         c.quit()

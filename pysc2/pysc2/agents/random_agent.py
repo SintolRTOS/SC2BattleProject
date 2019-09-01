@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""A random agent for starcraft."""
+"""星际争霸的随机智能体."""
 
 from __future__ import absolute_import
 from __future__ import division
@@ -24,8 +24,9 @@ from pysc2.lib import actions
 
 
 class RandomAgent(base_agent.BaseAgent):
-  """A random agent for starcraft."""
+  """星际争霸的随机智能体."""
 
+  #随机环境参数，产生行动值
   def step(self, obs):
     super(RandomAgent, self).step(obs)
     function_id = numpy.random.choice(obs.observation.available_actions)
