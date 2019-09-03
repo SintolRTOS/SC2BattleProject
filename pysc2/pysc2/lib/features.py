@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Render feature layers from SC2 Observation protos into numpy arrays."""
+"""将SC2观察原型中的特征层呈现为numpy数组."""
 
 from __future__ import absolute_import
 from __future__ import division
@@ -43,7 +43,7 @@ class FeatureType(enum.Enum):
 
 
 class PlayerRelative(enum.IntEnum):
-  """The values for the `player_relative` feature layers."""
+  """将SC2观察原型中的特征层呈现为numpy数组."""
   NONE = 0
   SELF = 1
   ALLY = 2
@@ -52,14 +52,14 @@ class PlayerRelative(enum.IntEnum):
 
 
 class Visibility(enum.IntEnum):
-  """Values for the `visibility` feature layers."""
+  """“可见性”特性层的值."""
   HIDDEN = 0
   SEEN = 1
   VISIBLE = 2
 
 
 class Effects(enum.IntEnum):
-  """Values for the `effects` feature layer."""
+  """“效果”特性层的值."""
   # pylint: disable=invalid-name
   PsiStorm = 1
   GuardianShield = 2
@@ -77,7 +77,7 @@ class Effects(enum.IntEnum):
 
 
 class ScoreCumulative(enum.IntEnum):
-  """Indices into the `score_cumulative` observation."""
+  """进入“score_cumulative”观察的索引."""
   score = 0
   idle_production_time = 1
   idle_worker_time = 2
@@ -94,7 +94,7 @@ class ScoreCumulative(enum.IntEnum):
 
 
 class ScoreByCategory(enum.IntEnum):
-  """Indices for the `score_by_category` observation's first dimension."""
+  """“score_by_category”观察的第一个维度的索引."""
   food_used = 0
   killed_minerals = 1
   killed_vespene = 2
@@ -109,7 +109,7 @@ class ScoreByCategory(enum.IntEnum):
 
 
 class ScoreCategories(enum.IntEnum):
-  """Indices for the `score_by_category` observation's second dimension."""
+  """“score_by_category”观察的第二个维度的索引."""
   none = 0
   army = 1
   economy = 2
@@ -118,21 +118,21 @@ class ScoreCategories(enum.IntEnum):
 
 
 class ScoreByVital(enum.IntEnum):
-  """Indices for the `score_by_vital` observation's first dimension."""
+  """“score_by_vital”观测的第一个维度的索引."""
   total_damage_dealt = 0
   total_damage_taken = 1
   total_healed = 2
 
 
 class ScoreVitals(enum.IntEnum):
-  """Indices for the `score_by_vital` observation's second dimension."""
+  """“score_by_vital”观测的第二个维度的索引."""
   life = 0
   shields = 1
   energy = 2
 
 
 class Player(enum.IntEnum):
-  """Indices into the `player` observation."""
+  """进入“玩家”观察的索引."""
   player_id = 0
   minerals = 1
   vespene = 2
@@ -147,7 +147,7 @@ class Player(enum.IntEnum):
 
 
 class UnitLayer(enum.IntEnum):
-  """Indices into the unit layers in the observations."""
+  """观察到的单位层的指数."""
   unit_type = 0
   player_relative = 1
   health = 2
@@ -158,13 +158,13 @@ class UnitLayer(enum.IntEnum):
 
 
 class UnitCounts(enum.IntEnum):
-  """Indices into the `unit_counts` observations."""
+  """观察到的单位层的指数."""
   unit_type = 0
   count = 1
 
 
 class FeatureUnit(enum.IntEnum):
-  """Indices for the `feature_unit` observations."""
+  """“特征单元”观测的索引."""
   unit_type = 0
   alliance = 1
   health = 2
@@ -198,17 +198,17 @@ class FeatureUnit(enum.IntEnum):
 class Feature(collections.namedtuple(
     "Feature", ["index", "name", "layer_set", "full_name", "scale", "type",
                 "palette", "clip"])):
-  """Define properties of a feature layer.
+  """定义特性层的属性.
 
   Attributes:
-    index: Index of this layer into the set of layers.
-    name: The name of the layer within the set.
-    layer_set: Which set of feature layers to look at in the observation proto.
-    full_name: The full name including for visualization.
-    scale: Max value (+1) of this layer, used to scale the values.
-    type: A FeatureType for scalar vs categorical.
-    palette: A color palette for rendering.
-    clip: Whether to clip the values for coloring.
+    index: 将该层的索引放入一组层中.
+    name: 集合中层的名称.
+    layer_set: 在观察原型中查看哪一组特征层.
+    full_name: 包括可视化的全称.
+    scale: 此层的最大值(+1)，用于缩放值.
+    type: 标量与分类的特征类型.
+    palette: 用于呈现的调色板.
+    clip: 是否剪辑着色值.
   """
   __slots__ = ()
 
@@ -220,7 +220,7 @@ class Feature(collections.namedtuple(
   }
 
   def unpack(self, obs):
-    """Return a correctly shaped numpy array for this feature."""
+    """返回此功能的正确形状的numpy数组."""
     planes = getattr(obs.feature_layer_data, self.layer_set)
     plane = getattr(planes, self.name)
     return self.unpack_layer(plane)
@@ -228,25 +228,25 @@ class Feature(collections.namedtuple(
   @staticmethod
   @sw.decorate
   def unpack_layer(plane):
-    """Return a correctly shaped numpy array given the feature layer bytes."""
+    """返回给定特征层字节的正确形状的numpy数组."""
     size = point.Point.build(plane.size)
     if size == (0, 0):
-      # New layer that isn't implemented in this SC2 version.
+      # 这个SC2版本中没有实现的新层.
       return None
     data = np.frombuffer(plane.data, dtype=Feature.dtypes[plane.bits_per_pixel])
     if plane.bits_per_pixel == 1:
       data = np.unpackbits(data)
       if data.shape[0] != size.x * size.y:
-        # This could happen if the correct length isn't a multiple of 8, leading
-        # to some padding bits at the end of the string which are incorrectly
-        # interpreted as data.
+        # 如果正确的长度不是8的倍数，就会发生这种情况
+        # 到字符串末尾的一些填充位，这些填充位是不正确的
+        # 解释为数据.
         data = data[:size.x * size.y]
     return data.reshape(size.y, size.x)
 
   @staticmethod
   @sw.decorate
   def unpack_rgb_image(plane):
-    """Return a correctly shaped numpy array given the image bytes."""
+    """返回给定图像字节的正确形状的numpy数组."""
     assert plane.bits_per_pixel == 24, "{} != 24".format(plane.bits_per_pixel)
     size = point.Point.build(plane.size)
     data = np.frombuffer(plane.data, dtype=np.uint8)
@@ -279,7 +279,7 @@ class ScreenFeatures(collections.namedtuple("ScreenFeatures", [
           type=type_,
           palette=palette(scale) if callable(palette) else palette,
           clip=clip)
-    return super(ScreenFeatures, cls).__new__(cls, **feats)  # pytype: disable=missing-parameter
+    return super(ScreenFeatures, cls).__new__(cls, **feats)  # pytype:禁用=少的参数
 
 
 class MinimapFeatures(collections.namedtuple("MinimapFeatures", [
@@ -300,7 +300,7 @@ class MinimapFeatures(collections.namedtuple("MinimapFeatures", [
           type=type_,
           palette=palette(scale) if callable(palette) else palette,
           clip=False)
-    return super(MinimapFeatures, cls).__new__(cls, **feats)  # pytype: disable=missing-parameter
+    return super(MinimapFeatures, cls).__new__(cls, **feats)  # pytype:禁用=少的参数
 
 
 SCREEN_FEATURES = ScreenFeatures(
@@ -340,7 +340,7 @@ MINIMAP_FEATURES = MinimapFeatures(
 
 
 def _to_point(dims):
-  """Convert (width, height) or size -> point.Point."""
+  """转换(宽度，高度)或大小->点."""
   assert dims
 
   if isinstance(dims, (tuple, list)):
@@ -364,14 +364,14 @@ def _to_point(dims):
 
 
 class Dimensions(object):
-  """Screen and minimap dimensions configuration.
+  """屏幕和最小ap尺寸配置.
 
-  Both screen and minimap must be specified. Sizes must be positive.
-  Screen size must be greater than or equal to minimap size in both dimensions.
+    必须指定screen和minimap。大小必须为正。
+    屏幕大小必须大于或等于两个维度上的最小ap大小。
 
   Args:
-    screen: A (width, height) int tuple or a single int to be used for both.
-    minimap: A (width, height) int tuple or a single int to be used for both.
+    screen: 一个(宽，高)整型元组或一个整型用于两者.
+    minimap: 一个(宽，高)整型元组或一个整型用于两者.
   """
 
   def __init__(self, screen=None, minimap=None):
@@ -401,7 +401,7 @@ class Dimensions(object):
 
 
 class AgentInterfaceFormat(object):
-  """Observation and action interface format specific to a particular agent."""
+  """特定于特定智能体的观察和操作接口格式."""
 
   def __init__(
       self,
@@ -417,39 +417,38 @@ class AgentInterfaceFormat(object):
     """Initializer.
 
     Args:
-      feature_dimensions: Feature layer `Dimension`s. Either this or
-          rgb_dimensions (or both) must be set.
-      rgb_dimensions: RGB `Dimension`. Either this or feature_dimensions
-          (or both) must be set.
-      action_space: If you pass both feature and rgb sizes, then you must also
-          specify which you want to use for your actions as an ActionSpace enum.
-      camera_width_world_units: The width of your screen in world units. If your
-          feature_dimensions.screen=(64, 48) and camera_width is 24, then each
-          px represents 24 / 64 = 0.375 world units in each of x and y.
-          It'll then represent a camera of size (24, 0.375 * 48) = (24, 18)
-          world units.
-      use_feature_units: Whether to include feature unit data in observations.
-      use_raw_units: Whether to include raw unit data in observations. This
-          differs from feature_units because it includes units outside the
-          screen and hidden units, and because unit positions are given in
-          terms of world units instead of screen units.
-      use_unit_counts: Whether to include unit_counts observation. Disabled by
-          default since it gives information outside the visible area.
-      use_camera_position: Whether to include the camera's position (in world
-          units) in the observations.
-      hide_specific_actions: [bool] Some actions (eg cancel) have many
-          specific versions (cancel this building, cancel that spell) and can
-          be represented in a more general form. If a specific action is
-          available, the general will also be available. If you set
-          `hide_specific_actions` to False, the specific versions will also be
-          available, but if it's True, the specific ones will be hidden.
-          Similarly, when transforming back, a specific action will be returned
-          as the general action. This simplifies the action space, though can
-          lead to some actions in replays not being exactly representable using
-          only the general actions.
+      feature_dimensions: 功能层的维度。这或
+          必须设置rgb_dimensions(或两者都设置)t.
+      rgb_dimensions: RGB“维度”。或者是这个，或者是feature_dimensions
+          必须设置(或两者都设置).
+      action_space: 如果同时传递特性和rgb大小，那么也必须这样做
+          指定要将哪个操作用作ActionSpace枚举.
+      camera_width_world_units: 屏幕的宽度(以世界为单位)。如果你的
+            feature_dimensions。screen=(64, 48)， camera_width = 24，则每个
+            px表示x和y的24 / 64 = 0.375个世界单位。
+            然后它将表示一个大小为(24,0.375 * 48)=(24,18)的相机
+            世界上单位.
+      use_feature_units: 是否在观测中包含特征单元数据.
+      use_raw_units: 是否在观测中包含原始单元数据。这
+            与feature_units不同，因为它包含了
+            屏幕和隐藏单元，因为单元的位置是给定的
+            世界单位的术语，而不是屏幕单位.
+      use_unit_counts: 是否包括unit_counts观察值。残疾的
+          默认值，因为它提供了可见区域之外的信息.
+      use_camera_position:是否包括相机的位置(在世界上单位).
+      hide_specific_actions: 有些动作(如取消)有很多
+            特定的版本(取消这个建筑，取消那个咒语)可以
+            用更一般的形式表示。如果一个特定的行为是
+            可用，一般也会可用。如果你设置
+            ' hide_specific_actions '为False，具体版本也将为
+            可用，但如果它是真的，特定的将被隐藏。
+            类似地，当转换返回时，将返回特定的操作
+            作为一般动作。虽然这可以简化操作空间
+            导致重放中的某些操作无法精确表示
+            只有一般动作.
 
     Raises:
-      ValueError: if the parameters are inconsistent.
+      ValueError: 如果参数不一致.
     """
 
     if not feature_dimensions and not rgb_dimensions:
@@ -544,33 +543,32 @@ def parse_agent_interface_format(
     use_raw_units=False,
     use_unit_counts=False,
     use_camera_position=False):
-  """Creates an AgentInterfaceFormat object from keyword args.
+  """从关键字args创建一个AgentInterfaceFormat对象.
 
-  Convenient when using dictionaries or command-line arguments for config.
-
-  Note that the feature_* and rgb_* properties define the respective spatial
-  observation dimensions and accept:
-      * None or 0 to disable that spatial observation.
-      * A single int for a square observation with that side length.
-      * A (int, int) tuple for a rectangular (width, height) observation.
+      使用字典或命令行参数进行配置时非常方便。
+        注意，feature_*和rgb_*属性定义了各自的空间
+        观察尺寸及接受:
+        * None或0来禁用空间观察。
+        *一个单独的int值，用于具有该边长度的正方形观察。
+        *一个(int, int)元组用于矩形(宽，高)观察.
 
   Args:
-    feature_screen: If specified, so must feature_minimap be.
-    feature_minimap: If specified, so must feature_screen be.
-    rgb_screen: If specified, so must rgb_minimap be.
-    rgb_minimap: If specified, so must rgb_screen be.
+    feature_screen: 如果指定，则必须使用 feature_minimap be.
+    feature_minimap: 如果指定，则必须使用 feature_screen be.
+    rgb_screen: 如果指定，则必须使用 rgb_minimap be.
+    rgb_minimap: 如果指定，则必须使用 rgb_screen be.
     action_space: ["FEATURES", "RGB"].
     camera_width_world_units: An int.
-    use_feature_units: A boolean, defaults to False.
-    use_raw_units: A boolean, defaults to False.
-    use_unit_counts: A boolean, defaults to False.
-    use_camera_position: A boolean, defaults to False.
+    use_feature_units: 布尔值，默认为False.
+    use_raw_units: 布尔值，默认为False.
+    use_unit_counts: 布尔值，默认为False.
+    use_camera_position: 布尔值，默认为False.
 
   Returns:
-    An `AgentInterfaceFormat` object.
+    一个“AgentInterfaceFormat”对象.
 
   Raises:
-    ValueError: If an invalid parameter is specified.
+    ValueError: 如果指定了无效参数.
   """
   if feature_screen or feature_minimap:
     feature_dimensions = Dimensions(
@@ -606,34 +604,33 @@ def features_from_game_info(
     hide_specific_actions=True,
     use_unit_counts=False,
     use_camera_position=False):
-  """Construct a Features object using data extracted from game info.
+  """使用从游戏信息中提取的数据构造一个特征对象.
 
   Args:
-    game_info: A `sc_pb.ResponseGameInfo` from the game.
-    use_feature_units: Whether to include the feature unit observation.
-    use_raw_units: Whether to include raw unit data in observations. This
-        differs from feature_units because it includes units outside the
-        screen and hidden units, and because unit positions are given in
-        terms of world units instead of screen units.
-    action_space: If you pass both feature and rgb sizes, then you must also
-        specify which you want to use for your actions as an ActionSpace enum.
-    hide_specific_actions: [bool] Some actions (eg cancel) have many
-        specific versions (cancel this building, cancel that spell) and can
-        be represented in a more general form. If a specific action is
-        available, the general will also be available. If you set
-        `hide_specific_actions` to False, the specific versions will also be
-        available, but if it's True, the specific ones will be hidden.
-        Similarly, when transforming back, a specific action will be returned
-        as the general action. This simplifies the action space, though can
-        lead to some actions in replays not being exactly representable using
-        only the general actions.
-    use_unit_counts: Whether to include unit_counts observation. Disabled by
-        default since it gives information outside the visible area.
-    use_camera_position: Whether to include the camera's position (in world
-        units) in the observations.
+    game_info: sc pb.ResponseGameInfo '从游戏中获得.
+    use_feature_units: 是否包含特征单元观察.
+    use_raw_units: 是否在观测中包含原始单元数据。这
+        与feature_units不同，因为它包含了
+        屏幕和隐藏单元，因为单元的位置是给定的
+        世界单位的术语，而不是屏幕单位.
+    action_space: 如果同时传递特性和rgb大小，那么也必须这样做
+        指定要将哪个操作用作ActionSpace枚举.
+    hide_specific_actions: 有些动作(如取消)有很多
+        特定的版本(取消这个建筑，取消那个咒语)可以
+        用更一般的形式表示。如果一个特定的行为是
+        可用，一般也会可用。如果你设置
+        ' hide_specific_actions '为False，具体版本也将为
+        可用，但如果它是真的，特定的将被隐藏。
+        类似地，当转换返回时，将返回特定的操作
+        作为一般动作。虽然这可以简化操作空间
+        导致重放中的某些操作无法精确表示
+        只有一般动作.
+    use_unit_counts: 是否包括unit_counts观察值。残疾的
+        默认值，因为它提供了可见区域之外的信息.
+    use_camera_position: 是否包括相机的位置(在世界上单位).
 
   Returns:
-    A features object matching the specified parameterisation.
+    与指定参数匹配的特性对象.
 
   """
 
@@ -671,7 +668,7 @@ def features_from_game_info(
 
 
 def _init_valid_functions(action_dimensions):
-  """Initialize ValidFunctions and set up the callbacks."""
+  """初始化validfunction并设置回调."""
   sizes = {
       "screen": tuple(int(i) for i in action_dimensions.screen),
       "screen2": tuple(int(i) for i in action_dimensions.screen),
@@ -690,28 +687,26 @@ def _init_valid_functions(action_dimensions):
 
 
 class Features(object):
-  """Render feature layers from SC2 Observation protos into numpy arrays.
+  """将SC2观察原型中的特征层呈现为numpy数组.
 
-  This has the implementation details of how to render a starcraft environment.
-  It translates between agent action/observation formats and starcraft
-  action/observation formats, which should not be seen by agent authors. The
-  starcraft protos contain more information than they should have access to.
-
-  This is outside of the environment so that it can also be used in other
-  contexts, eg a supervised dataset pipeline.
+    这里有如何渲染星际争霸环境的实现细节。
+    它在代理动作/观察格式和星际争霸之间转换
+    操作/观察格式，代理作者不应该看到。的
+    《星际争霸前传》包含的信息比他们应该获得的更多。
+    这是外部的环境，所以它也可以用于其他
+    上下文(如受监督的数据集管道).
   """
 
   def __init__(self, agent_interface_format=None, map_size=None):
-    """Initialize a Features instance matching the specified interface format.
+    """初始化与指定接口格式匹配的功能部件实例.
 
     Args:
-      agent_interface_format: See the documentation for `AgentInterfaceFormat`.
-      map_size: The size of the map in world units, needed for feature_units.
+      agent_interface_format: 参见“AgentInterfaceFormat”文档.
+      map_size: 以世界单位表示的地图大小，这是feature_units所需要的.
 
     Raises:
-      ValueError: if agent_interface_format isn't specified.
-      ValueError: if map_size isn't specified when use_feature_units or
-          use_camera_position is.
+      ValueError: 如果没有指定智能体接口格式.
+      ValueError: 如果在use_feature_units或use_camera_position是.
     """
     if not agent_interface_format:
       raise ValueError("Please specify agent_interface_format")
@@ -732,20 +727,20 @@ class Features(object):
 
   def init_camera(
       self, feature_dimensions, map_size, camera_width_world_units):
-    """Initialize the camera (especially for feature_units).
+    """初始化相机(特别是对于feature_units).
 
-    This is called in the constructor and may be called repeatedly after
-    `Features` is constructed, since it deals with rescaling coordinates and not
-    changing environment/action specs.
+    这在构造函数中调用，并且可以在调用之后重复调用
+    “功能”是构建的，因为它处理重新缩放坐标而不是
+    改变环境/行为规范.
 
     Args:
-      feature_dimensions: See the documentation in `AgentInterfaceFormat`.
-      map_size: The size of the map in world units.
-      camera_width_world_units: See the documentation in `AgentInterfaceFormat`.
+      feature_dimensions: 参见“AgentInterfaceFormat”文档.
+      map_size: 地图的大小以世界为单位.
+      camera_width_world_units: 参见“AgentInterfaceFormat”文档.
 
     Raises:
-      ValueError: If map_size or camera_width_world_units are falsey (which
-          should mainly happen if called by the constructor).
+      ValueError: 如果map_size或camera_width_world_units是falsey(其中
+                  应该主要发生在构造函数调用时).
     """
     if not map_size or not camera_width_world_units:
       raise ValueError(
@@ -772,33 +767,33 @@ class Features(object):
         self._world_tl_to_world_camera_rel.scale)
 
   def observation_spec(self):
-    """The observation spec for the SC2 environment.
+    """基于新的相机中心更新相机转换.
 
-    It's worth noting that the image-like observations are in y,x/row,column
-    order which is different than the actions which are in x,y order. This is
-    due to conflicting conventions, and to facilitate printing of the images.
+    值得注意的是，类似于图像的观察位于y、x/行、列中
+    顺序不同于x y顺序的动作。这是
+    由于约定冲突，并便于打印图像.
 
     Returns:
-      The dict of observation names to their tensor shapes. Shapes with a 0 can
-      vary in length, for example the number of valid actions depends on which
-      units you have selected.
+      观测的dict将它们的张量形状命名为。形状为0
+      长度不同，例如有效操作的数量取决于哪个操作
+      你选择的单位。
     """
     obs_spec = named_array.NamedDict({
-        "action_result": (0,),  # See error.proto: ActionResult.
-        "alerts": (0,),  # See sc2api.proto: Alert.
+        "action_result": (0,),  #看到错误。原型:ActionResult.
+        "alerts": (0,),  # 看到sc2api。原型:警报.
         "available_actions": (0,),
-        "build_queue": (0, len(UnitLayer)),  # pytype: disable=wrong-arg-types
-        "cargo": (0, len(UnitLayer)),  # pytype: disable=wrong-arg-types
+        "build_queue": (0, len(UnitLayer)),  # pytype:禁用= wrong-arg-types
+        "cargo": (0, len(UnitLayer)),  # pytype:禁用= wrong-arg-types
         "cargo_slots_available": (1,),
         "control_groups": (10, 2),
         "game_loop": (1,),
         "last_actions": (0,),
-        "multi_select": (0, len(UnitLayer)),  # pytype: disable=wrong-arg-types
-        "player": (len(Player),),  # pytype: disable=wrong-arg-types
-        "score_cumulative": (len(ScoreCumulative),),  # pytype: disable=wrong-arg-types
-        "score_by_category": (len(ScoreByCategory), len(ScoreCategories)),  # pytype: disable=wrong-arg-types
-        "score_by_vital": (len(ScoreByVital), len(ScoreVitals)),  # pytype: disable=wrong-arg-types
-        "single_select": (0, len(UnitLayer)),  # Only (n, 7) for n in (0, 1).  # pytype: disable=wrong-arg-types
+        "multi_select": (0, len(UnitLayer)),  # pytype:禁用= wrong-arg-types
+        "player": (len(Player),),  # pytype:禁用= wrong-arg-types
+        "score_cumulative": (len(ScoreCumulative),),  # pytype:禁用= wrong-arg-types
+        "score_by_category": (len(ScoreByCategory), len(ScoreCategories)),  # pytype:禁用= wrong-arg-types
+        "score_by_vital": (len(ScoreByVital), len(ScoreVitals)),  # pytype:禁用= wrong-arg-types
+        "single_select": (0, len(UnitLayer)),  # Only (n, 7) for n in (0, 1).  # pytype: 禁用= wrong-arg-types
     })
 
     aif = self._agent_interface_format
@@ -819,7 +814,7 @@ class Features(object):
                                  aif.rgb_dimensions.minimap.x,
                                  3)
     if aif.use_feature_units:
-      obs_spec["feature_units"] = (0, len(FeatureUnit))  # pytype: disable=wrong-arg-types
+      obs_spec["feature_units"] = (0, len(FeatureUnit))  # 禁用= wrong-arg-types
 
     if aif.use_raw_units:
       obs_spec["raw_units"] = (0, len(FeatureUnit))
@@ -839,7 +834,7 @@ class Features(object):
   def transform_obs(self, obs):
     """Render some SC2 observations into something an agent can handle."""
     empty = np.array([], dtype=np.int32).reshape((0, 7))
-    out = named_array.NamedDict({  # Fill out some that are sometimes empty.
+    out = named_array.NamedDict({  # 填一些有时是空的。
         "single_select": empty,
         "multi_select": empty,
         "build_queue": empty,
@@ -938,7 +933,7 @@ class Features(object):
           u.shields,
           u.energy,
           u.transport_slots_taken,
-          int(u.build_progress * 100),  # discretize
+          int(u.build_progress * 100),  # 离散化
       ), dtype=np.int32)
 
     ui = obs.observation.ui_data
@@ -977,14 +972,14 @@ class Features(object):
           point.Point.build(u.pos))
       screen_radius = pos_transform.fwd_dist(u.radius)
       return np.array((
-          # Match unit_vec order
+          # 匹配单元vec订单
           u.unit_type,
           u.alliance,  # Self = 1, Ally = 2, Neutral = 3, Enemy = 4
           u.health,
           u.shield,
           u.energy,
           u.cargo_space_taken,
-          int(u.build_progress * 100),  # discretize
+          int(u.build_progress * 100),  # 离散化
 
           # Resume API order
           int(u.health / u.health_max * 255) if u.health_max > 0 else 0,
@@ -1003,7 +998,7 @@ class Features(object):
           u.mineral_contents,
           u.vespene_contents,
 
-          # Not populated for enemies or neutral
+          # 不适合敌人或中立
           u.cargo_space_max,
           u.assigned_harvesters,
           u.ideal_harvesters,
@@ -1016,7 +1011,7 @@ class Features(object):
 
     if aif.use_feature_units:
       with sw("feature_units"):
-        # Update the camera location so we can calculate world to screen pos
+        # 更新相机位置，这样我们可以计算世界屏幕pos
         self._update_camera(point.Point.build(raw.player.camera))
         feature_units = []
         for u in raw.units:
@@ -1055,7 +1050,7 @@ class Features(object):
 
   @sw.decorate
   def available_actions(self, obs):
-    """Return the list of available action ids."""
+    """返回可用操作id的列表."""
     available_actions = set()
     hide_specific_actions = self._agent_interface_format.hide_specific_actions
     for i, func in six.iteritems(actions.FUNCTIONS_AVAILABLE):
@@ -1069,31 +1064,31 @@ class Features(object):
         if func.function_type in actions.POINT_REQUIRED_FUNCS[a.requires_point]:
           if func.general_id == 0 or not hide_specific_actions:
             available_actions.add(func.id)
-          if func.general_id != 0:  # Always offer generic actions.
+          if func.general_id != 0:  #始终提供通用操作.
             for general_func in actions.ABILITY_IDS[func.general_id]:
               if general_func.function_type is func.function_type:
-                # Only the right type. Don't want to expose the general action
-                # to minimap if only the screen version is available.
+                #只有正确的类型。不想暴露一般动作
+                #到小地图，如果只有屏幕版本可用.
                 available_actions.add(general_func.id)
                 break
     return list(available_actions)
 
   @sw.decorate
   def transform_action(self, obs, func_call, skip_available=False):
-    """Tranform an agent-style action to one that SC2 can consume.
+    """将代理样式的操作转换为SC2可以使用的操作.
 
     Args:
-      obs: a `sc_pb.Observation` from the previous frame.
-      func_call: a `FunctionCall` to be turned into a `sc_pb.Action`.
-      skip_available: If True, assume the action is available. This should only
-          be used for testing or if you expect to make actions that weren't
-          valid at the last observation.
+      obs: a `sc_pb.Observation` 前一帧.
+      func_call: 将“FunctionCall”转换为“sc_pb.Action”.
+      skip_available: 如果为真，则假设操作可用。这应该只
+        用于测试，或者如果您希望执行没有执行的操作
+        在最后一次观察中有效.
 
     Returns:
-      a corresponding `sc_pb.Action`.
+      对应的“sc pb.Action”.
 
     Raises:
-      ValueError: if the action doesn't pass validation.
+      ValueError: 如果操作没有通过验证.
     """
     func_id = func_call.function
     try:
@@ -1136,7 +1131,7 @@ class Features(object):
     kwargs = {type_.name: type_.fn(a)
               for type_, a in zip(func.args, func_call.arguments)}
 
-    # Call the right callback to get an SC2 action proto.
+    # 将它们转换为python类型.
     sc2_action = sc_pb.Action()
     kwargs["action"] = sc2_action
     kwargs["action_space"] = aif.action_space
@@ -1147,25 +1142,25 @@ class Features(object):
 
   @sw.decorate
   def reverse_action(self, action):
-    """Transform an SC2-style action into an agent-style action.
+    """将sc2样式的操作转换为代理样式的操作.
 
-    This should be the inverse of `transform_action`.
+    这应该是transform_action的倒数.
 
     Args:
-      action: a `sc_pb.Action` to be transformed.
+      action: a `sc_pb.Action` 被转换.
 
     Returns:
-      A corresponding `actions.FunctionCall`.
+      一个相应的“actions.FunctionCall”.
 
     Raises:
-      ValueError: if it doesn't know how to transform this action.
+      ValueError: 如果它不知道如何转换这个动作.
     """
-    FUNCTIONS = actions.FUNCTIONS  # pylint: disable=invalid-name
+    FUNCTIONS = actions.FUNCTIONS  # pylint:禁用=无效名称
 
     aif = self._agent_interface_format
 
     def func_call_ability(ability_id, cmd_type, *args):
-      """Get the function id for a specific ability id and action type."""
+      """获取特定能力id和操作类型的函数id."""
       if ability_id not in actions.ABILITY_IDS:
         logging.warning("Unknown ability_id: %s. This is probably dance or "
                         "cheer, or some unknown new or map specific ability. "
@@ -1221,9 +1216,9 @@ class Features(object):
         return FUNCTIONS.select_point(select_point.type - 1, coord)
       if act_sp.HasField("unit_selection_rect"):
         select_rect = act_sp.unit_selection_rect
-        # TODO(tewalds): After looking at some replays we should decide if
-        # this is good enough. Maybe we need to simulate multiple actions or
-        # merge the selection rects into a bigger one.
+        #TODO(tewalds):看了一些回放后，我们应该决定是否
+        #这已经足够好了。也许我们需要模拟多个动作
+        #将选择矩形合并到一个更大的矩形中.
         tl = point.Point.build(select_rect.selection_screen_coord[0].p0)
         br = point.Point.build(select_rect.selection_screen_coord[0].p1)
         return FUNCTIONS.select_rect(select_rect.selection_add, tl, br)
