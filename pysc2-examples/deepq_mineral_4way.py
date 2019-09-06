@@ -77,20 +77,20 @@ class ActWrapper(object):
 
 
 def load(path, act_params, num_cpu=16):
-  """Load act function that was returned by learn function.
+  """学习函数返回的加载行为函数.
 
 Parameters
 ----------
 path: str
-    path to the act function pickle
+    到act函数pickle的路径
 num_cpu: int
-    number of cpus to use for executing the policy
+    用于执行策略的cpu数量
 
 Returns
 -------
 act: ActWrapper
-    function that takes a batch of observations
-    and returns actions.
+    函数，该函数接受一批观察值
+    并返回操作.
 """
   return ActWrapper.load(path, num_cpu=num_cpu, act_params=act_params)
 
@@ -119,74 +119,74 @@ def learn(env,
           param_noise=False,
           param_noise_threshold=0.05,
           callback=None):
-  """Train a deepq model.
+  """训练一个DQN模型.
 
 Parameters
 -------
 env: pysc2.env.SC2Env
-    environment to train on
+    训练环境
 q_func: (tf.Variable, int, str, bool) -> tf.Variable
-    the model that takes the following inputs:
+    接受以下输入的模型:
         observation_in: object
-            the output of observation placeholder
+            观察占位符的输出
         num_actions: int
-            number of actions
+            数量的行为
         scope: str
         reuse: bool
-            should be passed to outer variable scope
-    and returns a tensor of shape (batch_size, num_actions) with values of every action.
+            是否应该传递到外部变量范围
+    并返回一个形状张量(batch_size, num_actions)，其中包含每个动作的值.
 lr: float
-    learning rate for adam optimizer
+    亚当优化学习率
 max_timesteps: int
-    number of env steps to optimizer for
+    要优化的env步骤的数量
 buffer_size: int
-    size of the replay buffer
+    重放缓冲区的大小
 exploration_fraction: float
-    fraction of entire training period over which the exploration rate is annealed
+    勘探率退火后的整个训练周期的一部分
 exploration_final_eps: float
-    final value of random action probability
+    随机作用概率的最终值
 train_freq: int
-    update the model every `train_freq` steps.
-    set to None to disable printing
+    更新模型的每一个' train_freq '步骤。
+    设置为None以禁用打印
 batch_size: int
-    size of a batched sampled from replay buffer for training
+    从回放缓冲区中取样用于训练的批量大小
 print_freq: int
-    how often to print out training progress
-    set to None to disable printing
+    多久打印一次培训进度
+    设置为None以禁用打印
 checkpoint_freq: int
-    how often to save the model. This is so that the best version is restored
-    at the end of the training. If you do not wish to restore the best version at
-    the end of the training set this variable to None.
+    保存模型的频率。这是为了恢复最好的版本
+    在训练结束时。如果不希望还原最佳版本，请在
+    训练结束时，将该变量设置为None。
 learning_starts: int
-    how many steps of the model to collect transitions for before learning starts
+    在开始学习之前，模型中有多少步骤需要收集转换
 gamma: float
-    discount factor
+    折现系数
 target_network_update_freq: int
-    update the target network every `target_network_update_freq` steps.
+    更新目标网络的每个“target_network_update_freq”步骤。
 prioritized_replay: True
-    if True prioritized replay buffer will be used.
+    如果真，优先重放缓冲区将被使用。
 prioritized_replay_alpha: float
-    alpha parameter for prioritized replay buffer
+    优先级重放缓冲区的alpha参数
 prioritized_replay_beta0: float
-    initial value of beta for prioritized replay buffer
+    优先级重放缓冲区的beta初始值
 prioritized_replay_beta_iters: int
-    number of iterations over which beta will be annealed from initial value
-    to 1.0. If set to None equals to max_timesteps.
+    从初始值开始对beta进行退火的迭代次数
+    到1.0。如果设置为None，则等于max_timesteps。
 prioritized_replay_eps: float
-    epsilon to add to the TD errors when updating priorities.
+    在更新优先级时增加TD错误。
 num_cpu: int
-    number of cpus to use for training
+    用于培训的cpu数量
 callback: (locals, globals) -> None
-    function called at every steps with state of the algorithm.
-    If callback returns true training stops.
+    函数调用的每一步与算法的状态。
+    如果回调返回真训练停止。
 
 Returns
 -------
 act: ActWrapper
-    Wrapper over act function. Adds ability to save it and load it.
-    See header of baselines/deepq/categorical.py for details on the act function.
+    封装行为函数。添加保存和加载它的功能。
+    有关act函数的详细信息，请参见基线/deepq/ category .py的头部。
 """
-  # Create all the functions necessary to train the model
+  # 创建训练模型所需的所有函数
 
   sess = U.make_session(num_cpu=num_cpu)
   sess.__enter__()
@@ -241,13 +241,13 @@ act: ActWrapper
 
     beta_schedule = None
     # beta_schedule_y = None
-  # Create the schedule for exploration starting from 1.
+  # 从1开始创建探索计划。
   exploration = LinearSchedule(
     schedule_timesteps=int(exploration_fraction * max_timesteps),
     initial_p=1.0,
     final_p=exploration_final_eps)
 
-  # Initialize the parameters and copy them to the target network.
+  # 初始化参数并将它们复制到目标网络。
   U.initialize()
   update_target()
   # update_target_y()
@@ -256,7 +256,7 @@ act: ActWrapper
   saved_mean_reward = None
 
   obs = env.reset()
-  # Select all marines first
+  # 首先选择所有矿兵
   obs = env.step(
     actions=[sc2_actions.FunctionCall(_SELECT_ARMY, [_SELECT_ALL])])
 
@@ -287,7 +287,7 @@ act: ActWrapper
       if callback is not None:
         if callback(locals(), globals()):
           break
-      # Take action and update exploration to the newest value
+      # 采取行动，将探索更新到最新的价值
       kwargs = {}
       if not param_noise:
         update_eps = exploration.value(t)
@@ -297,10 +297,10 @@ act: ActWrapper
         if param_noise_threshold >= 0.:
           update_param_noise_threshold = param_noise_threshold
         else:
-          # Compute the threshold such that the KL divergence between perturbed and non-perturbed
-          # policy is comparable to eps-greedy exploration with eps = exploration.value(t).
-          # See Appendix C.1 in Parameter Space Noise for Exploration, Plappert et al., 2017
-          # for detailed explanation.
+            # 计算阈值，使微扰和非微扰之间的KL发散
+            # policy与eps = explorer .value(t)的eps贪婪探索类似。
+            #参见附录C.1的参数空间噪声勘探，Plappert等，2017
+            #详细说明。
           update_param_noise_threshold = -np.log(
             1. - exploration.value(t) +
             exploration.value(t) / float(num_actions))
@@ -460,7 +460,7 @@ act: ActWrapper
           # replay_buffer.update_priorities(batch_idxes, new_priorities)
 
       if t > learning_starts and t % target_network_update_freq == 0:
-        # Update target network periodically.
+        # 定期更新目标网络。
         update_target()
         # update_target_y()
 
@@ -508,8 +508,8 @@ UP, DOWN, LEFT, RIGHT = 'up', 'down', 'left', 'right'
 
 
 def shift(direction, number, matrix):
-  ''' shift given 2D matrix in-place the given number of rows or columns
-    in the specified (UP, DOWN, LEFT, RIGHT) direction and return it
+  ''' 将给定的二维矩阵移位到指定的行数或列数
+      按照指定的(上、下、左、右)方向返回
 '''
   if direction in (UP):
     matrix = np.roll(matrix, -number, axis=0)

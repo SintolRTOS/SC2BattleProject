@@ -52,15 +52,23 @@ last_filename = ""
 start_time = datetime.datetime.now().strftime("%m%d%H%M")
 
 
+#模块的主函数
 def main():
   FLAGS(sys.argv)
 
+  #使用的算法模块
   print("algorithm : %s" % FLAGS.algorithm)
+  #强化学习训练次数
   print("timesteps : %s" % FLAGS.timesteps)
+  #强化学习探索参数
   print("exploration_fraction : %s" % FLAGS.exploration_fraction)
+  #优先级
   print("prioritized : %s" % FLAGS.prioritized)
+  #决斗参数
   print("dueling : %s" % FLAGS.dueling)
+  #多智能体个数
   print("num_agents : %s" % FLAGS.num_agents)
+  #强化学习随机参数
   print("lr : %s" % FLAGS.lr)
 
   if (FLAGS.lr == 0):
@@ -72,6 +80,7 @@ def main():
 
   logdir = "tensorboard"
 
+  #通过强化学习算法log参数
   if (FLAGS.algorithm == "deepq-4way"):
     logdir = "tensorboard/mineral/%s/%s_%s_prio%s_duel%s_lr%s/%s" % (
       FLAGS.algorithm, FLAGS.timesteps, FLAGS.exploration_fraction,
@@ -98,6 +107,7 @@ def main():
       = Logger(dir=None,
                output_formats=[HumanOutputFormat(sys.stdout)])
 
+  #根据强化学习算法启动星际争霸2环境
   if (FLAGS.algorithm == "deepq"):
 
     with sc2_env.SC2Env(
@@ -184,7 +194,7 @@ def main():
 from pysc2.env import environment
 import numpy as np
 
-
+#如果使用DQN算法，从这里接收算法训练的回调值
 def deepq_callback(locals, globals):
   #pprint.pprint(locals)
   global max_mean_reward, last_filename
@@ -223,7 +233,7 @@ def deepq_callback(locals, globals):
       print("save best mean_100ep_reward model to %s" % filename)
       last_filename = filename
 
-
+#如果使用deepq_4way算法，从这里接收算法训练的回调值
 def deepq_4way_callback(locals, globals):
   #pprint.pprint(locals)
   global max_mean_reward, last_filename
@@ -264,6 +274,7 @@ def deepq_4way_callback(locals, globals):
       last_filename = filename
 
 
+#如果使用a2c算法，从这里接收算法训练的回调值
 def a2c_callback(locals, globals):
   global max_mean_reward, last_filename
   #pprint.pprint(locals)
