@@ -12,30 +12,27 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""运行SC2进行人工游戏或重播."""
+"""Run SC2 to play a game or a replay."""
 
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import getpass
 import json
 import platform
 import sys
 import time
 
-from absl import app
-from absl import flags
 import mpyq
 import six
 from pysc2 import maps
 from pysc2 import run_configs
 from pysc2.env import sc2_env
-from pysc2.lib import point_flag
 from pysc2.lib import renderer_human
 from pysc2.lib import stopwatch
-from pysc2.run_configs import lib as run_configs_lib
 
+from absl import app
+from absl import flags
 from s2clientprotocol import sc2api_pb2 as sc_pb
 
 FLAGS = flags.FLAGS
@@ -46,26 +43,17 @@ flags.DEFINE_bool("full_screen", False, "Whether to run full screen.")
 flags.DEFINE_float("fps", 22.4, "Frames per second to run the game.")
 flags.DEFINE_integer("step_mul", 1, "Game steps per observation.")
 flags.DEFINE_bool("render_sync", False, "Turn on sync rendering.")
-point_flag.DEFINE_point("feature_screen_size", "84",
-                        "Resolution for screen feature layers.")
-point_flag.DEFINE_point("feature_minimap_size", "64",
-                        "Resolution for minimap feature layers.")
-point_flag.DEFINE_point("rgb_screen_size", "256,192",
-                        "Resolution for rendered screen.")
-point_flag.DEFINE_point("rgb_minimap_size", "128",
-                        "Resolution for rendered minimap.")
-flags.DEFINE_string("video", None, "Path to render a video of observations.")
+flags.DEFINE_integer("screen_resolution", 84,
+                     "Resolution for screen feature layers.")
+flags.DEFINE_integer("minimap_resolution", 64,
+                     "Resolution for minimap feature layers.")
 
 flags.DEFINE_integer("max_game_steps", 0, "Total game steps to run.")
 flags.DEFINE_integer("max_episode_steps", 0, "Total game steps per episode.")
 
-flags.DEFINE_string("user_name", getpass.getuser(),
-                    "Name of the human player for replays.")
-flags.DEFINE_enum("user_race", "random", sc2_env.Race._member_names_,  # pylint: disable=protected-access
-                  "User's race.")
-flags.DEFINE_enum("bot_race", "random", sc2_env.Race._member_names_,  # pylint: disable=protected-access
-                  "AI race.")
-flags.DEFINE_enum("difficulty", "very_easy", sc2_env.Difficulty._member_names_,  # pylint: disable=protected-access
+flags.DEFINE_enum("user_race", "R", sc2_env.races.keys(), "User's race.")
+flags.DEFINE_enum("bot_race", "R", sc2_env.races.keys(), "AI race.")
+flags.DEFINE_enum("difficulty", "1", sc2_env.difficulties.keys(),
                   "Bot's strength.")
 flags.DEFINE_bool("disable_fog", False, "Disable fog of war.")
 flags.DEFINE_integer("observed_player", 1, "Which player to observe.")
@@ -82,7 +70,7 @@ flags.DEFINE_string("replay", None, "Name of a replay to show.")
 
 
 def main(unused_argv):
-  """运行SC2进行人工游戏或重播."""
+  """Run SC2 to play a game or a replay."""
   stopwatch.sw.enabled = FLAGS.profile or FLAGS.trace
   stopwatch.sw.trace = FLAGS.trace
 
@@ -93,7 +81,7 @@ def main(unused_argv):
     sys.exit("Replay must end in .SC2Replay.")
 
   if FLAGS.realtime and FLAGS.replay:
-    # TODO(tewalds):支持实时回放，需要游戏版本支持.
+    # TODO(tewalds): Support realtime in replays once the game supports it.
     sys.exit("realtime isn't possible for replays yet.")
 
   if FLAGS.render and (FLAGS.realtime or FLAGS.full_screen):
@@ -111,13 +99,10 @@ def main(unused_argv):
   interface.raw = FLAGS.render
   interface.score = True
   interface.feature_layer.width = 24
-  if FLAGS.feature_screen_size and FLAGS.feature_minimap_size:
-    FLAGS.feature_screen_size.assign_to(interface.feature_layer.resolution)
-    FLAGS.feature_minimap_size.assign_to(
-        interface.feature_layer.minimap_resolution)
-  if FLAGS.rgb_screen_size and FLAGS.rgb_minimap_size:
-    FLAGS.rgb_screen_size.assign_to(interface.render.resolution)
-    FLAGS.rgb_minimap_size.assign_to(interface.render.minimap_resolution)
+  interface.feature_layer.resolution.x = FLAGS.screen_resolution
+  interface.feature_layer.resolution.y = FLAGS.screen_resolution
+  interface.feature_layer.minimap_resolution.x = FLAGS.minimap_resolution
+  interface.feature_layer.minimap_resolution.y = FLAGS.minimap_resolution
 
   max_episode_steps = FLAGS.max_episode_steps
 
@@ -132,12 +117,11 @@ def main(unused_argv):
                                  map_data=map_inst.data(run_config)))
     create.player_setup.add(type=sc_pb.Participant)
     create.player_setup.add(type=sc_pb.Computer,
-                            race=sc2_env.Race[FLAGS.bot_race],
-                            difficulty=sc2_env.Difficulty[FLAGS.difficulty])
-    join = sc_pb.RequestJoinGame(
-        options=interface, race=sc2_env.Race[FLAGS.user_race],
-        player_name=FLAGS.user_name)
-    version = None
+                            race=sc2_env.races[FLAGS.bot_race],
+                            difficulty=sc2_env.difficulties[FLAGS.difficulty])
+    join = sc_pb.RequestJoinGame(race=sc2_env.races[FLAGS.user_race],
+                                 options=interface)
+    game_version = None
   else:
     replay_data = run_config.replay_data(FLAGS.replay)
     start_replay = sc_pb.RequestStartReplay(
@@ -145,9 +129,9 @@ def main(unused_argv):
         options=interface,
         disable_fog=FLAGS.disable_fog,
         observed_player_id=FLAGS.observed_player)
-    version = get_replay_version(replay_data)
+    game_version = get_game_version(replay_data)
 
-  with run_config.start(version=version,
+  with run_config.start(game_version=game_version,
                         full_screen=FLAGS.full_screen) as controller:
     if FLAGS.map:
       controller.create_game(create)
@@ -165,7 +149,7 @@ def main(unused_argv):
     if FLAGS.render:
       renderer = renderer_human.RendererHuman(
           fps=FLAGS.fps, step_mul=FLAGS.step_mul,
-          render_sync=FLAGS.render_sync, video=FLAGS.video)
+          render_sync=FLAGS.render_sync)
       renderer.run(
           run_config, controller, max_game_steps=FLAGS.max_game_steps,
           game_steps_per_episode=max_episode_steps,
@@ -197,20 +181,17 @@ def main(unused_argv):
     print(stopwatch.sw)
 
 
-def get_replay_version(replay_data):
+def get_game_version(replay_data):
   replay_io = six.BytesIO()
   replay_io.write(replay_data)
   replay_io.seek(0)
   archive = mpyq.MPQArchive(replay_io).extract()
   metadata = json.loads(archive[b"replay.gamemetadata.json"].decode("utf-8"))
-  return run_configs_lib.Version(
-      game_version=".".join(metadata["GameVersion"].split(".")[:-1]),
-      build_version=int(metadata["BaseBuild"][4:]),
-      data_version=metadata.get("DataVersion"),  # 只有在重播版本4.1+。.
-      binary=None)
+  version = metadata["GameVersion"]
+  return ".".join(version.split(".")[:-1])
 
 
-def entry_point():  # 需要这样setup.py脚本工作。
+def entry_point():  # Needed so setup.py scripts work.
   app.run(main)
 
 

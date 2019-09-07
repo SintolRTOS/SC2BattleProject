@@ -18,12 +18,12 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from absl.testing import absltest
 from pysc2 import run_configs
 from pysc2.lib import protocol
 from pysc2.lib import remote_controller
 from pysc2.tests import utils
 
+from absl.testing import absltest as basetest
 from s2clientprotocol import sc2api_pb2 as sc_pb
 
 
@@ -31,7 +31,7 @@ class TestProtocolError(utils.TestCase):
   """Verify that we blow up if SC2 thinks we did something wrong."""
 
   def test_error(self):
-    with run_configs.get().start(want_rgb=False) as controller:
+    with run_configs.get().start() as controller:
       with self.assertRaises(remote_controller.RequestError):
         controller.create_game(sc_pb.RequestCreateGame())  # Missing map, etc.
 
@@ -40,4 +40,4 @@ class TestProtocolError(utils.TestCase):
 
 
 if __name__ == "__main__":
-  absltest.main()
+  basetest.main()

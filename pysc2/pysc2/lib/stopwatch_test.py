@@ -18,22 +18,23 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import os
+import itertools
 
-from absl.testing import absltest
 from future.builtins import range  # pylint: disable=redefined-builtin
 
 import mock
 from pysc2.lib import stopwatch
 
+from absl.testing import absltest as basetest
+
 
 def ham_dist(str1, str2):
   """Hamming distance. Count the number of differences between str1 and str2."""
   assert len(str1) == len(str2)
-  return sum(c1 != c2 for c1, c2 in zip(str1, str2))
+  return sum(c1 != c2 for c1, c2 in itertools.izip(str1, str2))
 
 
-class StatTest(absltest.TestCase):
+class StatTest(basetest.TestCase):
 
   def testRange(self):
     stat = stopwatch.Stat()
@@ -57,7 +58,7 @@ class StatTest(absltest.TestCase):
     self.assertLess(ham_dist(out, str(stopwatch.Stat.parse(out))), 5)
 
 
-class StopwatchTest(absltest.TestCase):
+class StopwatchTest(basetest.TestCase):
 
   @mock.patch("time.time")
   def testStopwatch(self, mock_time):
@@ -105,18 +106,6 @@ class StopwatchTest(absltest.TestCase):
     # Just make sure this doesn't have a divide by 0 for when the total is 0.
     self.assertIn("zero", str(sw))
 
-  @mock.patch.dict(os.environ, {"SC2_NO_STOPWATCH": "1"})
-  def testDecoratorDisabled(self):
-    sw = stopwatch.StopWatch()
-    self.assertEqual(round, sw.decorate(round))
-    self.assertEqual(round, sw.decorate("name")(round))
-
-  @mock.patch.dict(os.environ, {"SC2_NO_STOPWATCH": ""})
-  def testDecoratorEnabled(self):
-    sw = stopwatch.StopWatch()
-    self.assertNotEqual(round, sw.decorate(round))
-    self.assertNotEqual(round, sw.decorate("name")(round))
-
   def testSpeed(self):
     count = 1000
 
@@ -147,4 +136,4 @@ class StopwatchTest(absltest.TestCase):
 
 
 if __name__ == "__main__":
-  absltest.main()
+  basetest.main()

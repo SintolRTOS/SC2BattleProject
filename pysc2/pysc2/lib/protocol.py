@@ -24,11 +24,11 @@ import socket
 import sys
 import time
 
-from absl import flags
 import enum
 from pysc2.lib import stopwatch
 import websocket
 
+from absl import flags
 from s2clientprotocol import sc2api_pb2 as sc_pb
 
 
@@ -57,14 +57,11 @@ class ProtocolError(Exception):
 
 @contextlib.contextmanager
 def catch_websocket_connection_errors():
-  """A context manager that translates websocket errors into ConnectionError."""
   try:
     yield
   except websocket.WebSocketConnectionClosedException:
     raise ConnectionError("Connection already closed. SC2 probably crashed. "
                           "Check the error log.")
-  except websocket.WebSocketTimeoutException:
-    raise ConnectionError("Websocket timed out.")
   except socket.error as e:
     raise ConnectionError("Socket error: %s" % e)
 
@@ -80,12 +77,6 @@ class StarcraftProtocol(object):
   def status(self):
     return self._status
 
-  def close(self):
-    if self._sock:
-      self._sock.close()
-      self._sock = None
-    self._status = Status.quit
-
   @sw.decorate
   def read(self):
     """Read a Response, do some validation, and return it."""
@@ -99,12 +90,12 @@ class StarcraftProtocol(object):
     if not response.HasField("status"):
       raise ProtocolError("Got an incomplete response without a status.")
     prev_status = self._status
-    self._status = Status(response.status)  # pytype: disable=not-callable
+    self._status = Status(response.status)
     if response.error:
       err_str = ("Error in RPC response (likely a bug). "
                  "Prev status: %s, new status: %s, error:\n%s" % (
                      prev_status, self._status, "\n".join(response.error)))
-      logging.error(err_str)
+      logging.critical(err_str)
       raise ProtocolError(err_str)
     return response
 

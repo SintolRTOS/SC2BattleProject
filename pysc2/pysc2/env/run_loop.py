@@ -20,20 +20,18 @@ from __future__ import print_function
 import time
 
 
-def run_loop(agents, env, max_frames=0, max_episodes=0):
+def run_loop(agents, env, max_frames=0):
   """A run loop to have agents and an environment interact."""
   total_frames = 0
-  total_episodes = 0
   start_time = time.time()
 
-  observation_spec = env.observation_spec()
   action_spec = env.action_spec()
-  for agent, obs_spec, act_spec in zip(agents, observation_spec, action_spec):
-    agent.setup(obs_spec, act_spec)
+  observation_spec = env.observation_spec()
+  for agent in agents:
+    agent.setup(observation_spec, action_spec)
 
   try:
-    while not max_episodes or total_episodes < max_episodes:
-      total_episodes += 1
+    while True:
       timesteps = env.reset()
       for a in agents:
         a.reset()

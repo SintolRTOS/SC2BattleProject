@@ -18,12 +18,12 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from absl.testing import absltest
-
 from pysc2.agents import scripted_agent
 from pysc2.env import run_loop
 from pysc2.env import sc2_env
 from pysc2.tests import utils
+
+from absl.testing import absltest as basetest
 
 
 class TestEasy(utils.TestCase):
@@ -33,10 +33,6 @@ class TestEasy(utils.TestCase):
   def test_move_to_beacon(self):
     with sc2_env.SC2Env(
         map_name="MoveToBeacon",
-        agent_interface_format=sc2_env.AgentInterfaceFormat(
-            feature_dimensions=sc2_env.Dimensions(
-                screen=84,
-                minimap=64)),
         step_mul=self.step_mul,
         game_steps_per_episode=self.steps * self.step_mul) as env:
       agent = scripted_agent.MoveToBeacon()
@@ -49,10 +45,6 @@ class TestEasy(utils.TestCase):
   def test_collect_mineral_shards(self):
     with sc2_env.SC2Env(
         map_name="CollectMineralShards",
-        agent_interface_format=sc2_env.AgentInterfaceFormat(
-            feature_dimensions=sc2_env.Dimensions(
-                screen=84,
-                minimap=64)),
         step_mul=self.step_mul,
         game_steps_per_episode=self.steps * self.step_mul) as env:
       agent = scripted_agent.CollectMineralShards()
@@ -62,30 +54,9 @@ class TestEasy(utils.TestCase):
     self.assertLessEqual(agent.episodes, agent.reward)
     self.assertEqual(agent.steps, self.steps)
 
-  def test_collect_mineral_shards_feature_units(self):
-    with sc2_env.SC2Env(
-        map_name="CollectMineralShards",
-        agent_interface_format=sc2_env.AgentInterfaceFormat(
-            feature_dimensions=sc2_env.Dimensions(
-                screen=84,
-                minimap=64),
-            use_feature_units=True),
-        step_mul=self.step_mul,
-        game_steps_per_episode=self.steps * self.step_mul) as env:
-      agent = scripted_agent.CollectMineralShardsFeatureUnits()
-      run_loop.run_loop([agent], env, self.steps)
-
-    # Get some points
-    self.assertLessEqual(agent.episodes, agent.reward)
-    self.assertEqual(agent.steps, self.steps)
-
   def test_defeat_roaches(self):
     with sc2_env.SC2Env(
         map_name="DefeatRoaches",
-        agent_interface_format=sc2_env.AgentInterfaceFormat(
-            feature_dimensions=sc2_env.Dimensions(
-                screen=84,
-                minimap=64)),
         step_mul=self.step_mul,
         game_steps_per_episode=self.steps * self.step_mul) as env:
       agent = scripted_agent.DefeatRoaches()
@@ -97,4 +68,4 @@ class TestEasy(utils.TestCase):
 
 
 if __name__ == "__main__":
-  absltest.main()
+  basetest.main()

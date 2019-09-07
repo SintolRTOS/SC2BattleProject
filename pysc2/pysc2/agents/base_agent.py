@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""编写自定义脚本化代理的基本智能体."""
+"""A base agent to write custom scripted agents."""
 
 from __future__ import absolute_import
 from __future__ import division
@@ -21,12 +21,8 @@ from pysc2.lib import actions
 
 
 class BaseAgent(object):
-  """编写自定义脚本化代理的基本智能体.
+  """A base agent to write custom scripted agents."""
 
-  它还可以作为一个被动的智能体，除了不执行操作外什么也不做.
-  """
-  
-  #初始化基本参数
   def __init__(self):
     self.reward = 0
     self.episodes = 0
@@ -34,17 +30,14 @@ class BaseAgent(object):
     self.obs_spec = None
     self.action_spec = None
 
-  #根据环境创建智能体
   def setup(self, obs_spec, action_spec):
     self.obs_spec = obs_spec
     self.action_spec = action_spec
 
-  #重置
   def reset(self):
     self.episodes += 1
 
-  #根据外部环境产生行动 获得行动奖励
   def step(self, obs):
     self.steps += 1
     self.reward += obs.reward
-    return actions.FunctionCall(actions.FUNCTIONS.no_op.id, [])
+    return actions.FunctionCall(0, [])

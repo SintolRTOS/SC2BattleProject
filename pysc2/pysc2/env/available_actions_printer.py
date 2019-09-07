@@ -26,7 +26,7 @@ class AvailableActionsPrinter(base_env_wrapper.BaseEnvWrapper):
   def __init__(self, env):
     super(AvailableActionsPrinter, self).__init__(env)
     self._seen = set()
-    self._action_spec = self.action_spec()[0]
+    self._action_spec = self.action_spec()
 
   def step(self, *args, **kwargs):
     all_obs = super(AvailableActionsPrinter, self).step(*args, **kwargs)

@@ -18,12 +18,13 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from absl.testing import absltest
 from future.builtins import range  # pylint: disable=redefined-builtin
 
 from pysc2 import run_configs
 from pysc2.lib import stopwatch
 from pysc2.tests import utils
+
+from absl.testing import absltest as basetest
 
 
 class TestPing(utils.TestCase):
@@ -31,7 +32,7 @@ class TestPing(utils.TestCase):
   def test_ping(self):
     count = 100
 
-    with run_configs.get().start(want_rgb=False) as controller:
+    with run_configs.get().start() as controller:
       with stopwatch.sw("first"):
         controller.ping()
 
@@ -42,4 +43,4 @@ class TestPing(utils.TestCase):
 
 
 if __name__ == "__main__":
-  absltest.main()
+  basetest.main()

@@ -26,11 +26,9 @@ import sys
 import threading
 import time
 
-from absl import app
-from absl import flags
 from future.builtins import range  # pylint: disable=redefined-builtin
-import queue
 import six
+from six.moves import queue
 
 from pysc2 import run_configs
 from pysc2.lib import features
@@ -38,6 +36,8 @@ from pysc2.lib import point
 from pysc2.lib import protocol
 from pysc2.lib import remote_controller
 
+from absl import app
+from absl import flags
 from pysc2.lib import gfile
 from s2clientprotocol import common_pb2 as sc_common
 from s2clientprotocol import sc2api_pb2 as sc_pb
@@ -246,7 +246,7 @@ class ReplayProcessor(multiprocessing.Process):
         options=interface,
         observed_player_id=player_id))
 
-    feat = features.features_from_game_info(controller.game_info())
+    feat = features.Features(controller.game_info())
 
     self.stats.replay_stats.replays += 1
     self._update_stage("step")

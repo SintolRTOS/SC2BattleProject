@@ -20,7 +20,6 @@ from __future__ import print_function
 from collections import defaultdict
 import functools
 import math
-import os
 import sys
 import threading
 import time
@@ -191,9 +190,6 @@ class StopWatch(object):
       If a name is passed, returns this as a decorator, otherwise returns the
       decorated function.
     """
-    if os.environ.get("SC2_NO_STOPWATCH"):
-      return name_or_func if callable(name_or_func) else lambda func: func
-
     def decorator(name, func):
       @functools.wraps(func)
       def _stopwatch(*args, **kwargs):
@@ -240,7 +236,6 @@ class StopWatch(object):
 
   @staticmethod
   def parse(s):
-    """Parse the output below to create a new StopWatch."""
     stopwatch = StopWatch()
     for line in s.splitlines():
       if line.strip():
