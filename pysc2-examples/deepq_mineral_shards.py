@@ -325,7 +325,7 @@ def learn(env,
       if math.isnan(player_y_mean):
           player_y_mean = 0
       
-      player = [int(player_x.mean()), int(player_y.mean())]
+      player = [int(player_x_mean), int(player_y_mean)]
 
       rew = obs[0].reward
 
