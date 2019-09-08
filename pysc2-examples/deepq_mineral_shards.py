@@ -4,6 +4,7 @@ import dill
 import tempfile
 import tensorflow as tf
 import zipfile
+import math
 
 from absl import flags
 
@@ -317,6 +318,13 @@ def learn(env,
       new_screen = (player_relative == _PLAYER_NEUTRAL).astype(int)
 
       player_y, player_x = (player_relative == _PLAYER_FRIENDLY).nonzero()
+      player_x_mean = player_x.mean()
+      player_y_mean = player_y.mean()
+      if math.isnan(player_x_mean):
+          player_x_mean = 0
+      if math.isnan(player_y_mean):
+          player_y_mean = 0
+      
       player = [int(player_x.mean()), int(player_y.mean())]
 
       rew = obs[0].reward
