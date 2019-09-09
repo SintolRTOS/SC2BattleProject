@@ -40,18 +40,19 @@ class ActWrapper(object):
 
   @staticmethod
   def load(path, act_params, num_cpu=16):
-    with open(path, "rb") as f:
-      model_data = dill.load(f)
+#    with open(path, "rb") as f:
+#      model_data = dill.load(f)
     act = deepq.build_act(**act_params)
     sess = U.make_session(num_cpu=num_cpu)
     sess.__enter__()
-    with tempfile.TemporaryDirectory() as td:
-      arc_path = os.path.join(td, "packed.zip")
-      with open(arc_path, "wb") as f:
-        f.write(model_data)
-
-      zipfile.ZipFile(arc_path, 'r', zipfile.ZIP_DEFLATED).extractall(td)
-      U.load_state(os.path.join(td, "model"))
+    U.load_state(path)
+#    with tempfile.TemporaryDirectory() as td:
+#      arc_path = os.path.join(td, "packed.zip")
+#      with open(arc_path, "wb") as f:
+#        f.write(model_data)
+#
+#      zipfile.ZipFile(arc_path, 'r', zipfile.ZIP_DEFLATED).extractall(td)
+#      U.load_state(os.path.join(td, "model"))
 
     return ActWrapper(act)
 

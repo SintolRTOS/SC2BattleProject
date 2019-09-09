@@ -10,7 +10,7 @@ from pysc2.lib import actions
 from pysc2.lib import actions as sc2_actions
 from pysc2.lib import features
 
-import deepq_mineral_shards
+import deepq_mineral_4way
 
 _PLAYER_RELATIVE = features.SCREEN_FEATURES.player_relative.index
 _PLAYER_FRIENDLY = 1
@@ -51,8 +51,8 @@ def main():
       'num_actions': 4,
     }
 
-    act = deepq_mineral_shards.load(
-      "mineral_shards.pkl", act_params=act_params)
+    act = deepq_mineral_4way.load(
+      ".\model", act_params=act_params)
 
     while True:
 
